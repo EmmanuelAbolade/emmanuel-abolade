@@ -244,6 +244,7 @@ export default function AboutPage() {
                   src="/images/profile.jpg"
                   alt="Emmanuel Abolade"
                   fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
                   style={{ objectFit: "cover", objectPosition: "top center" }}
                   priority
                 />
