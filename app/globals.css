@@ -1,26 +1,270 @@
+/* app/globals.css */
+/* Global styles, CSS variables for all themes, and base resets */
+
 @import "tailwindcss";
+@import "@fontsource/dm-sans/400.css";
+@import "@fontsource/dm-sans/500.css";
+@import "@fontsource/dm-sans/600.css";
+@import "@fontsource/dm-serif-display/400.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ── Theme Variables ─────────────────────────────────── */
+
+:root,
+[data-theme="light"] {
+  --bg: #f9f7f4;
+  --bg-secondary: #f0ede8;
+  --surface: #ffffff;
+  --border: #e5e0d8;
+  --text-primary: #1a1714;
+  --text-secondary: #6b6560;
+  --text-muted: #9c9690;
+  --accent: #c17f3e;
+  --accent-hover: #a86c2e;
+  --accent-subtle: #f5e9d8;
+  --link: #c17f3e;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+[data-theme="dark"] {
+  --bg: #0f0e0d;
+  --bg-secondary: #1a1814;
+  --surface: #1f1e1a;
+  --border: #2e2c27;
+  --text-primary: #f0ede8;
+  --text-secondary: #9c9690;
+  --text-muted: #6b6560;
+  --accent: #d4944f;
+  --accent-hover: #e0a865;
+  --accent-subtle: #2a1f12;
+  --link: #d4944f;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+[data-theme="forest"] {
+  --bg: #0d1410;
+  --bg-secondary: #131a14;
+  --surface: #1a2318;
+  --border: #253022;
+  --text-primary: #e8f0e4;
+  --text-secondary: #8aaa82;
+  --text-muted: #5a7a54;
+  --accent: #6dbf5e;
+  --accent-hover: #82d472;
+  --accent-subtle: #152212;
+  --link: #6dbf5e;
+}
+
+[data-theme="ocean"] {
+  --bg: #0a0f1a;
+  --bg-secondary: #0f1624;
+  --surface: #141e2e;
+  --border: #1e2e44;
+  --text-primary: #e4ecf8;
+  --text-secondary: #7a9cc4;
+  --text-muted: #4a6c94;
+  --accent: #4a9eff;
+  --accent-hover: #6db2ff;
+  --accent-subtle: #0a1828;
+  --link: #4a9eff;
+}
+
+[data-theme="rose"] {
+  --bg: #fdf6f6;
+  --bg-secondary: #f8eded;
+  --surface: #ffffff;
+  --border: #f0dede;
+  --text-primary: #1a0f0f;
+  --text-secondary: #7a5555;
+  --text-muted: #aa8585;
+  --accent: #c94040;
+  --accent-hover: #a82e2e;
+  --accent-subtle: #faeaea;
+  --link: #c94040;
+}
+
+[data-theme="slate"] {
+  --bg: #f4f6f8;
+  --bg-secondary: #ebeef2;
+  --surface: #ffffff;
+  --border: #d8dde4;
+  --text-primary: #0f1520;
+  --text-secondary: #556070;
+  --text-muted: #8898a8;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-subtle: #dbeafe;
+  --link: #2563eb;
+}
+
+/* ── Base Styles ─────────────────────────────────────── */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: "DM Sans", sans-serif;
+  background-color: var(--bg);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  background-color: var(--bg);
+  color: var(--text-primary);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
 }
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "DM Serif Display", serif;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+
+a {
+  color: var(--link);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--accent-hover);
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+/* ── Utility Classes ─────────────────────────────────── */
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--accent);
+  color: var(--bg);
+  padding: 0.75rem 1.75rem;
+  border-radius: 0.375rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+  text-decoration: none;
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  color: var(--bg);
+  transform: translateY(-1px);
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  color: var(--text-primary);
+  padding: 0.75rem 1.75rem;
+  border-radius: 0.375rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: 1.5px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.1s ease;
+  text-decoration: none;
+}
+
+.btn-outline:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-subtle);
+  transform: translateY(-1px);
+}
+
+.section {
+  padding: 5rem 0;
+}
+
+.section-title {
+  font-family: "DM Serif Display", serif;
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.section-subtitle {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  max-width: 560px;
+}
+
+.divider {
+  width: 3rem;
+  height: 3px;
+  background: var(--accent);
+  margin: 1rem 0 2rem;
+  border-radius: 2px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 1.75rem;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  letter-spacing: 0.03em;
+}
+
+/* ── Animations ──────────────────────────────────────── */
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+.delay-5 { animation-delay: 0.5s; }
