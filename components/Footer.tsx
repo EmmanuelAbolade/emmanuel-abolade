@@ -155,7 +155,7 @@ export default function Footer() {
                 GitHub
               </a>
               <a
-                href="https://linkedin.com/in/emmanuel-abolade"
+                href="https://linkedin.com/in/emmanuel-m-abolade"
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
