@@ -1,19 +1,26 @@
 // app/layout.tsx
-// Root layout — wraps all pages with ThemeProvider, Navbar, and Footer
+// Root layout - wraps all pages with ThemeProvider and conditional public layout
+// Admin and login pages opt out of the public Navbar and Footer via LayoutWrapper
 
 import type { Metadata } from "next"
 import "./globals.css"
 import { ThemeProvider } from "@/components/ThemeProvider"
-import Navbar from "@/components/Navbar"
-import Footer from "@/components/Footer"
+import LayoutWrapper from "@/components/LayoutWrapper"
 
 export const metadata: Metadata = {
   title: {
     default: "Emmanuel Abolade — Software Developer",
     template: "%s | Emmanuel Abolade",
   },
-  description: "Software developer based in Ireland specialising in full-stack web development and machine learning.",
-  keywords: ["software developer", "Next.js", "React", "machine learning", "Ireland"],
+  description:
+    "Software developer based in Ireland specialising in full-stack web development and machine learning.",
+  keywords: [
+    "software developer",
+    "Next.js",
+    "React",
+    "machine learning",
+    "Ireland",
+  ],
   authors: [{ name: "Emmanuel Abolade" }],
   openGraph: {
     title: "Emmanuel Abolade — Software Developer",
@@ -34,13 +41,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body>
         <ThemeProvider>
-          <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-            <Navbar />
-            <main style={{ flex: 1, paddingTop: "4rem" }}>
-              {children}
-            </main>
-            <Footer />
-          </div>
+          <LayoutWrapper>{children}</LayoutWrapper>
         </ThemeProvider>
       </body>
     </html>
