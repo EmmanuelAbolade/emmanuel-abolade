@@ -5,6 +5,7 @@
 
 import Link from "next/link"
 import { ArrowRight, Download, GitBranch, Briefcase, Mail } from "lucide-react"
+import NewsletterForm from "@/components/NewsletterForm"
 
 const PROJECTS = [
   {
@@ -51,10 +52,7 @@ const socialLinkStyle = {
 }
 
 export default function HomePage() {
-  function handleSubscribe(e: React.FormEvent) {
-    e.preventDefault()
-  }
-
+  
   return (
     <>
       {/* Hero Section */}
@@ -343,35 +341,7 @@ export default function HomePage() {
             Get notified when I publish new articles, projects, or resources.
             No spam — ever.
           </p>
-          <form
-            onSubmit={handleSubscribe}
-            style={{
-              display: "flex",
-              gap: "0.75rem",
-              flexWrap: "wrap",
-              justifyContent: "center",
-            }}
-          >
-            <input
-              type="email"
-              placeholder="your@email.com"
-              required
-              style={{
-                flex: 1,
-                minWidth: "220px",
-                padding: "0.75rem 1rem",
-                borderRadius: "0.375rem",
-                border: "1.5px solid var(--border)",
-                background: "var(--surface)",
-                color: "var(--text-primary)",
-                fontSize: "0.9rem",
-                outline: "none",
-              }}
-            />
-            <button type="submit" className="btn-primary">
-              Subscribe
-            </button>
-          </form>
+          <NewsletterForm />
           <p
             style={{
               marginTop: "1rem",
