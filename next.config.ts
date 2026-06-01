@@ -1,7 +1,21 @@
-import type { NextConfig } from "next";
+// next.config.ts
+// Next.js configuration - whitelists external image domains
+
+import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
-  /* config options here */
-};
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.supabase.co",
+      },
+    ],
+  },
+}
 
-export default nextConfig;
+export default nextConfig
