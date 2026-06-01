@@ -161,6 +161,8 @@ function SearchBox({
               boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
               zIndex: 50,
               overflow: "hidden",
+              maxHeight: "240px",
+              overflowY: "auto",
             }}
           >
             {suggestions.map((s, i) => (
@@ -313,7 +315,15 @@ export default function ProjectsClient({ projects }: { projects: Project[] }) {
             />
 
             {/* Filter pills */}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", flex: 1 }}>
+            <div style={{
+              display: "flex",
+              gap: "0.4rem",
+              flex: 1,
+              overflowX: "auto",
+              paddingBottom: "2px",
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+            }}>
               {allTechnologies.slice(0, 8).map((tech) => (
                 <button
                   key={tech}
@@ -616,24 +626,6 @@ function ProjectCard({ project, featured = false }: { project: Project; featured
               <ArrowRight size={14} />
             </motion.span>
           </div>
-
-          {/* GitHub link */}
-          {project.repository_url && (
-            <a
-              href={project.repository_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                display: "inline-flex", alignItems: "center", gap: "0.3rem",
-                marginTop: "0.5rem", color: "var(--text-muted)",
-                fontSize: "0.78rem", textDecoration: "none",
-                transition: "color 0.2s ease",
-              }}
-            >
-              <GitBranch size={12} /> Source Code
-            </a>
-          )}
         </div>
       </motion.div>
     </Link>
