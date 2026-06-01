@@ -432,6 +432,7 @@ function PostCard({ post, featured = false }: { post: Post; featured?: boolean }
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
                 style={{ objectFit: "cover" }}
+                priority={featured}
               />
             </motion.div>
             {/* Gradient overlay */}
