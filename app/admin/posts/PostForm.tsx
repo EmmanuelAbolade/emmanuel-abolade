@@ -166,13 +166,14 @@ export default function PostForm({ initial }: { initial?: Partial<Post> }) {
     }
 
     if (dbError) {
-      setError(dbError.message)
+      console.error("Post save error:", dbError)
+      setError(dbError.message ?? "Failed to save post. Please try again.")
       setSaving(false)
       return
     }
 
-    router.push("/admin/posts")
     router.refresh()
+    router.push("/admin/posts")
   }
 
   return (

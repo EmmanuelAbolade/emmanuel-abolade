@@ -105,6 +105,7 @@ type Props = {
 
 export default function RichTextEditor({ content, onChange, placeholder }: Props) {
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({
         codeBlock: false,
