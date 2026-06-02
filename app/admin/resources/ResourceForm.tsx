@@ -316,7 +316,6 @@ export default function ResourceForm({ initial }: { initial?: Partial<Resource> 
             />
             <p style={hintStyle}>Visitors can click to copy this code.</p>
           </div>
-        </div>
 
         {/* Tags */}
         <div>
