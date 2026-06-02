@@ -13,6 +13,7 @@ import {
   FolderOpen,
   FileText,
   BookMarked,
+  Tag,
   MessageSquare,
   Users,
   LogOut,
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   { href: "/admin/projects",    label: "Projects",    icon: FolderOpen      },
   { href: "/admin/posts",       label: "Posts",       icon: FileText        },
   { href: "/admin/resources",   label: "Resources",   icon: BookMarked      },
+  { href: "/admin/categories",  label: "Categories",  icon: Tag             },
   { href: "/admin/messages",    label: "Messages",    icon: MessageSquare   },
   { href: "/admin/subscribers", label: "Subscribers", icon: Users           },
 ]
