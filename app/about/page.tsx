@@ -33,7 +33,7 @@ const SKILL_GROUPS = [
   },
   {
     category: "Backend & Database",
-    skills: ["Node.js", "Supabase", "PostgreSQL", "MySQL", "REST APIs"],
+    skills: ["Node.js", "Supabase", "PostgreSQL", "MySQL", "Firebase", "Firestore", "REST APIs"],
   },
   {
     category: "Machine Learning",

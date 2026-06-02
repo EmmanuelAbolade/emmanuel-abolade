@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Save, Loader, AlertCircle, ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import ImageUpload from "@/components/ImageUpload"
 
 type Resource = {
   id?: string
@@ -297,18 +298,13 @@ export default function ResourceForm({ initial }: { initial?: Partial<Resource> 
         </div>
 
         {/* Logo URL and Coupon Code */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-          <div>
-            <label style={labelStyle}>Logo URL</label>
-            <input
-              type="url"
-              value={form.logo_url}
-              onChange={(e) => set("logo_url", e.target.value)}
-              style={inputStyle}
-              placeholder="https://... (small brand logo)"
-            />
-            <p style={hintStyle}>Small square logo shown on the resource card.</p>
-          </div>
+        <ImageUpload
+            label="Logo / Brand Image"
+            value={form.logo_url}
+            onChange={(url) => set("logo_url", url)}
+            folder="resources"
+            aspectRatio="1/1"
+          />
           <div>
             <label style={labelStyle}>Coupon Code</label>
             <input

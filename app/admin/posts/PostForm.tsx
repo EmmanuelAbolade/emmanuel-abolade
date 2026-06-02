@@ -10,6 +10,7 @@ import dynamic from "next/dynamic"
 import { createClient } from "@/lib/supabase/client"
 import { Save, Loader, AlertCircle, ArrowLeft, Eye } from "lucide-react"
 import Link from "next/link"
+import ImageUpload from "@/components/ImageUpload"
 
 // Dynamically import the editor to avoid SSR issues
 const RichTextEditor = dynamic(() => import("@/components/RichTextEditor"), {
@@ -274,21 +275,18 @@ export default function PostForm({ initial }: { initial?: Partial<Post> }) {
         </div>
 
         {/* Cover image */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "1rem", alignItems: "end" }}>
-          <div>
-            <label style={labelStyle}>Cover Image URL</label>
-            <input
-              type="url"
-              value={form.cover_image}
-              onChange={(e) => set("cover_image", e.target.value)}
-              style={inputStyle}
-              placeholder="https://res.cloudinary.com/..."
-            />
-          </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+          <ImageUpload
+            label="Cover Image"
+            value={form.cover_image}
+            onChange={(url) => set("cover_image", url)}
+            folder="posts"
+            aspectRatio="16/9"
+          />
           <label style={{
             display: "flex", alignItems: "center", gap: "0.5rem",
-            cursor: "pointer", fontSize: "0.875rem", color: "var(--text-secondary)",
-            fontWeight: 500, whiteSpace: "nowrap", paddingBottom: "0.75rem",
+            cursor: "pointer", fontSize: "0.875rem",
+            color: "var(--text-secondary)", fontWeight: 500,
           }}>
             <input
               type="checkbox"

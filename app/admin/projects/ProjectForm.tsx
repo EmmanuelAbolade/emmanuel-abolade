@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Save, Loader, AlertCircle, ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import ImageUpload from "@/components/ImageUpload"
 
 type Project = {
   id?: string
@@ -417,17 +418,13 @@ export default function ProjectForm({
         </div>
 
         {/* Image URL */}
-        <div>
-          <label style={labelStyle}>Image URL</label>
-          <input
-            type="url"
+        <ImageUpload
+            label="Project Image"
             value={form.image_url}
-            onChange={(e) => set("image_url", e.target.value)}
-            style={inputStyle}
-            placeholder="https://... (hosted image URL)"
+            onChange={(url) => set("image_url", url)}
+            folder="projects"
+            aspectRatio="16/9"
           />
-          <p style={hintStyle}>Paste a hosted image URL. Supabase Storage upload coming soon.</p>
-        </div>
 
         {/* Key Achievements */}
         <div>
