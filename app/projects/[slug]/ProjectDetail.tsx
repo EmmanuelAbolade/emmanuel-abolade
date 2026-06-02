@@ -98,7 +98,7 @@ export default function ProjectDetail({
           style={{
             position: "relative",
             width: "100%",
-            height: "480px",
+            height: "400px",
             overflow: "hidden",
             background: "var(--bg-secondary)",
           }}
