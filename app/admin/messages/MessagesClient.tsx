@@ -562,7 +562,7 @@ export default function MessagesClient({ messages }: { messages: Message[] }) {
                     })}
                   </span>
                   {msg.admin_notes && (
-                    <FileText size={12} color="var(--text-muted)" title="Has notes" />
+                    <FileText size={12} color="var(--text-muted)" />
                   )}
                 </div>
               </button>
