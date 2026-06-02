@@ -8,7 +8,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTheme } from "next-themes"
-import { Menu, X, Sun, Moon, Palette, Code2 } from "lucide-react"
+import { Menu, X, Sun, Moon, Palette, Search, Code2 } from "lucide-react"
 
 const NAV_LINKS = [
   { href: "/",          label: "Home"      },
@@ -169,6 +169,31 @@ export default function Navbar() {
 
         {/* Right controls */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+
+        {/* Search link */}
+        <Link
+          href="/search"
+          aria-label="Search"
+          style={{
+            width: "2.25rem", height: "2.25rem",
+            borderRadius: "0.375rem",
+            border: "1px solid var(--border)",
+            background: "var(--surface)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: "var(--text-secondary)", textDecoration: "none",
+            transition: "all 0.2s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = "var(--accent)"
+            e.currentTarget.style.color = "var(--accent)"
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = "var(--border)"
+            e.currentTarget.style.color = "var(--text-secondary)"
+          }}
+        >
+          <Search size={15} />
+        </Link>  
 
           {/* Theme picker */}
           <div style={{ position: "relative" }}>
