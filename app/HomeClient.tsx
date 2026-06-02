@@ -293,8 +293,23 @@ export default function HomeClient({
 
         <style>{`
           @media (max-width: 768px) {
-            .hero-grid { grid-template-columns: 1fr !important; }
-            .hero-photo { display: none !important; }
+            .hero-grid {
+              grid-template-columns: 1fr !important;
+              text-align: center;
+            }
+            .hero-photo {
+              display: flex !important;
+              justify-content: center;
+              order: -1;
+              margin-bottom: 1rem;
+            }
+            .hero-photo > div:last-child {
+              width: 180px !important;
+              height: 180px !important;
+            }
+            .hero-photo > div:first-child {
+              inset: -0.75rem !important;
+            }
           }
         `}</style>
       </section>
