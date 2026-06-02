@@ -1,6 +1,7 @@
 // app/blog/[slug]/page.tsx
 // Individual blog post page - fetches post by slug from Supabase and renders content
 
+import GiscusComments from "@/components/GiscusComments"
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Image from "next/image"
@@ -216,6 +217,7 @@ export default async function BlogPostPage({ params }: Props) {
           }}
           dangerouslySetInnerHTML={{ __html: post.content ?? "" }}
         />
+        {post.allow_comments && <GiscusComments />}
       </article>
 
       {/* Prose content styles */}

@@ -1,6 +1,6 @@
 // lib/hooks/useAutoSave.ts
 // Custom hook for auto-saving post drafts to localStorage
-// Saves every 30 seconds and restores on page reload
+// Saves 2 seconds after every change and on unmount
 
 import { useEffect, useRef, useCallback } from "react"
 
@@ -9,41 +9,47 @@ type AutoSaveData = Record<string, unknown>
 export function useAutoSave(
   key: string,
   data: AutoSaveData,
-  enabled: boolean = true,
-  intervalMs: number = 30000
+  enabled: boolean = true
 ) {
-  const intervalRef  = useRef<ReturnType<typeof setInterval> | null>(null)
-  const lastSavedRef = useRef<string>("")
+  const timerRef     = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const dataRef      = useRef(data)
 
-  const save = useCallback(() => {
+  // Keep dataRef current on every render
+  useEffect(() => {
+    dataRef.current = data
+  })
+
+  const saveNow = useCallback(() => {
     if (!enabled) return
     try {
-      const serialized = JSON.stringify({ data, savedAt: new Date().toISOString() })
-      // Only save if data has changed
-      if (serialized !== lastSavedRef.current) {
-        localStorage.setItem(`autosave:${key}`, serialized)
-        lastSavedRef.current = serialized
-      }
+      const payload = JSON.stringify({
+        data:    dataRef.current,
+        savedAt: new Date().toISOString(),
+      })
+      localStorage.setItem(`autosave:${key}`, payload)
     } catch {
-      // localStorage may be unavailable in some environments
+      // localStorage unavailable
     }
-  }, [data, enabled, key])
+  }, [enabled, key])
 
-  // Save on interval
+  // Debounce — save 2 seconds after last change
   useEffect(() => {
     if (!enabled) return
-    intervalRef.current = setInterval(save, intervalMs)
+    if (timerRef.current) clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(saveNow, 2000)
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current)
+      if (timerRef.current) clearTimeout(timerRef.current)
     }
-  }, [save, enabled, intervalMs])
+  }, [data, enabled, saveNow])
 
-  // Save on unmount
+  // Save immediately on unmount
   useEffect(() => {
-    return () => { save() }
-  }, [save])
+    return () => {
+      saveNow()
+    }
+  }, [saveNow])
 
-  return { save }
+  return { saveNow }
 }
 
 export function getAutoSave(key: string): { data: AutoSaveData; savedAt: string } | null {
