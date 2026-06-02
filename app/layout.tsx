@@ -6,6 +6,8 @@ import type { Metadata } from "next"
 import "./globals.css"
 import { ThemeProvider } from "@/components/ThemeProvider"
 import LayoutWrapper from "@/components/LayoutWrapper"
+import { SpeedInsights } from "@vercel/speed-insights/next"
+import { Analytics } from "@vercel/analytics/react"
 
 const BASE_URL = "https://emmanuel-abolade.vercel.app"
 
@@ -84,6 +86,8 @@ export default function RootLayout({
         <ThemeProvider>
           <LayoutWrapper>{children}</LayoutWrapper>
         </ThemeProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
