@@ -5,6 +5,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useAutoSave, getAutoSave, clearAutoSave } from "@/lib/hooks/useAutoSave"
 import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
 import { createClient } from "@/lib/supabase/client"
@@ -89,11 +90,41 @@ const hintStyle: React.CSSProperties = {
 export default function PostForm({ initial }: { initial?: Partial<Post> }) {
   const router = useRouter()
   const isEdit = !!initial?.id
+  const autoSaveKey = isEdit ? `post-edit-${initial?.id}` : "post-new"
 
   const [form, setForm]         = useState<Post>({ ...empty, ...initial, tags: initial?.tags ?? [] })
   const [tagInput, setTagInput] = useState("")
   const [saving, setSaving]     = useState(false)
   const [error, setError]       = useState("")
+  const [restored, setRestored]   = useState(false)
+  const [lastSaved, setLastSaved] = useState<string | null>(null)
+
+  // Auto-save every 30 seconds
+  useAutoSave(autoSaveKey, form as Record<string, unknown>, !isEdit || true)
+
+  // Check for saved draft on mount
+  useEffect(() => {
+    if (isEdit) return // Do not restore on edit pages
+    const saved = getAutoSave(autoSaveKey)
+    if (saved) {
+      const ago = Math.round((Date.now() - new Date(saved.savedAt).getTime()) / 60000)
+      setLastSaved(`${ago} minute${ago !== 1 ? "s" : ""} ago`)
+      setRestored(true)
+    }
+  }, [])
+
+  function restoreDraft() {
+    const saved = getAutoSave(autoSaveKey)
+    if (saved?.data) {
+      setForm(saved.data as typeof form)
+      setRestored(false)
+    }
+  }
+
+  function discardDraft() {
+    clearAutoSave(autoSaveKey)
+    setRestored(false)
+  }
 
   function set(field: keyof Post, value: unknown) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -173,6 +204,7 @@ export default function PostForm({ initial }: { initial?: Partial<Post> }) {
       return
     }
 
+    clearAutoSave(autoSaveKey)
     router.refresh()
     router.push("/admin/posts")
   }
@@ -210,6 +242,46 @@ export default function PostForm({ initial }: { initial?: Partial<Post> }) {
         }}>
           <AlertCircle size={15} />
           {error}
+        </div>
+      )}
+      {restored && (
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          gap: "1rem", flexWrap: "wrap",
+          background: "var(--accent-subtle)",
+          border: "1px solid var(--accent)",
+          borderRadius: "0.5rem",
+          padding: "0.85rem 1.1rem",
+          marginBottom: "1.5rem",
+          fontSize: "0.875rem",
+        }}>
+          <p style={{ color: "var(--accent)", fontWeight: 500 }}>
+            You have an unsaved draft from {lastSaved}. Would you like to restore it?
+          </p>
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <button
+              type="button"
+              onClick={restoreDraft}
+              style={{
+                padding: "0.35rem 0.85rem", borderRadius: "0.375rem",
+                border: "none", background: "var(--accent)", color: "var(--bg)",
+                fontSize: "0.82rem", fontWeight: 600, cursor: "pointer",
+              }}
+            >
+              Restore Draft
+            </button>
+            <button
+              type="button"
+              onClick={discardDraft}
+              style={{
+                padding: "0.35rem 0.85rem", borderRadius: "0.375rem",
+                border: "1px solid var(--border)", background: "var(--surface)",
+                color: "var(--text-muted)", fontSize: "0.82rem", cursor: "pointer",
+              }}
+            >
+              Discard
+            </button>
+          </div>
         </div>
       )}
 
@@ -482,6 +554,16 @@ export default function PostForm({ initial }: { initial?: Partial<Post> }) {
           >
             Save as Draft
           </button>
+          <span style={{
+            fontSize: "0.78rem",
+            color: "var(--text-muted)",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.3rem",
+            alignSelf: "center",
+          }}>
+            Auto-saves every 30 seconds
+          </span>
           <Link href="/admin/posts" className="btn-outline">
             Cancel
           </Link>
