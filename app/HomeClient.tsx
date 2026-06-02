@@ -78,6 +78,35 @@ function formatDate(dateStr: string | null): string {
   })
 }
 
+// Shared profile photo badge component
+function ProfilePhoto({ size = 280 }: { size?: number }) {
+  return (
+    <div style={{ position: "relative", display: "inline-block" }}>
+      <div style={{
+        position: "absolute", inset: "-1rem",
+        background: "var(--accent-subtle)",
+        borderRadius: "50%", zIndex: 0,
+      }} />
+      <div style={{
+        width: `${size}px`, height: `${size}px`,
+        borderRadius: "50%", overflow: "hidden",
+        border: "4px solid var(--surface)",
+        boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+        position: "relative", zIndex: 1,
+      }}>
+        <Image
+          src="/images/profile.jpg"
+          alt="Emmanuel Abolade"
+          fill
+          sizes={`${size}px`}
+          style={{ objectFit: "cover", objectPosition: "top center" }}
+          priority
+        />
+      </div>
+    </div>
+  )
+}
+
 export default function HomeClient({
   projects,
   posts,
@@ -100,7 +129,7 @@ export default function HomeClient({
           paddingBottom: "3rem",
         }}
       >
-        {/* Background blob */}
+        {/* Background blobs */}
         <motion.div
           animate={{ scale: [1, 1.05, 1], opacity: [0.4, 0.6, 0.4] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
@@ -122,194 +151,212 @@ export default function HomeClient({
           }}
         />
 
-        <div className="container" style={{ position: "relative", zIndex: 1 }}>
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "1fr auto",
-            gap: "4rem",
-            alignItems: "center",
-          }}
-            className="hero-grid"
-          >
-            {/* Left: text */}
-            <div>
-              <motion.span
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className="tag"
-                style={{ display: "inline-flex", marginBottom: "1.5rem" }}
-              >
-                Available for opportunities
-              </motion.span>
+        <div className="container" style={{ position: "relative", zIndex: 1, width: "100%" }}>
 
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                style={{
-                  fontFamily: "DM Serif Display, serif",
-                  fontSize: "clamp(2.75rem, 6vw, 4.75rem)",
-                  lineHeight: 1.08, marginBottom: "1.5rem",
-                  color: "var(--text-primary)",
-                }}
-              >
-                Building digital
-                <br />
-                <span style={{ color: "var(--accent)" }}>experiences</span>
-                <br />
-                that matter.
-              </motion.h1>
+          {/* ── Desktop layout: text left, photo right ── */}
+          <div className="hero-desktop">
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "1fr auto",
+              gap: "4rem",
+              alignItems: "center",
+            }}>
+              {/* Left: text */}
+              <div>
+                <motion.span
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="tag"
+                  style={{ display: "inline-flex", marginBottom: "1.5rem" }}
+                >
+                  Welcome to my portfolio
+                </motion.span>
 
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                style={{
-                  fontSize: "1.1rem", color: "var(--text-secondary)",
-                  lineHeight: 1.8, maxWidth: "520px", marginBottom: "2.5rem",
-                }}
-              >
-                Software developer based in Ireland, focused on building
-                clean, purposeful and user-driven digital systems. Final-year
-                BSc student at SETU Carlow.
-              </motion.p>
+                <motion.h1
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  style={{
+                    fontFamily: "DM Serif Display, serif",
+                    fontSize: "clamp(2.75rem, 6vw, 4.75rem)",
+                    lineHeight: 1.08, marginBottom: "1.5rem",
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  Building digital
+                  <br />
+                  <span style={{ color: "var(--accent)" }}>experiences</span>
+                  <br />
+                  that matter.
+                </motion.h1>
 
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  style={{
+                    fontSize: "1.1rem", color: "var(--text-secondary)",
+                    lineHeight: 1.8, maxWidth: "520px", marginBottom: "2.5rem",
+                  }}
+                >
+                  Software developer based in Ireland, focused on building
+                  clean, purposeful and user-driven digital systems. Final-year
+                  BSc student at SETU Carlow.
+                </motion.p>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                  style={{ display: "flex", flexWrap: "wrap", gap: "1rem", marginBottom: "3rem" }}
+                >
+                  <Link href="/projects" className="btn-primary">
+                    View My Work <ArrowRight size={16} />
+                  </Link>
+                  <a href="/cv.pdf" className="btn-outline" download>
+                    <Download size={16} /> Download CV
+                  </a>
+                </motion.div>
+
+                <SocialLinks />
+              </div>
+
+              {/* Right: photo with floating badge */}
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                style={{ display: "flex", flexWrap: "wrap", gap: "1rem", marginBottom: "3rem" }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                style={{ position: "relative" }}
               >
-                <Link href="/projects" className="btn-primary">
-                  View My Work
-                  <ArrowRight size={16} />
-                </Link>
-                <a href="/cv.pdf" className="btn-outline" download>
-                  <Download size={16} />
-                  Download CV
-                </a>
-              </motion.div>
-
-              {/* Social links */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.4 }}
-                style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}
-              >
-                <span style={{
-                  fontSize: "0.78rem", color: "var(--text-muted)",
-                  letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600,
-                }}>
-                  Find me on
-                </span>
-                {[
-                  { href: "https://github.com/EmmanuelAbolade", icon: GitBranch, label: "GitHub" },
-                  { href: "https://linkedin.com/in/emmanuel-m-abolade", icon: Briefcase, label: "LinkedIn" },
-                  { href: "mailto:emab.dev.tech@gmail.com", icon: Mail, label: "Email" },
-                ].map(({ href, icon: Icon, label }) => (
-                  <motion.a
-                    key={href}
-                    href={href}
-                    target={href.startsWith("mailto") ? undefined : "_blank"}
-                    rel="noopener noreferrer"
-                    aria-label={label}
-                    whileHover={{ scale: 1.1, y: -2 }}
-                    style={{
-                      width: "2.25rem", height: "2.25rem", borderRadius: "0.375rem",
-                      border: "1px solid var(--border)", background: "var(--surface)",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      color: "var(--text-secondary)", textDecoration: "none",
-                      transition: "border-color 0.2s ease, color 0.2s ease",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = "var(--accent)"
-                      e.currentTarget.style.color = "var(--accent)"
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = "var(--border)"
-                      e.currentTarget.style.color = "var(--text-secondary)"
-                    }}
-                  >
-                    <Icon size={15} />
-                  </motion.a>
-                ))}
+                <ProfilePhoto size={280} />
+                <motion.div
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  style={{
+                    position: "absolute", bottom: "-0.5rem", left: "-1.5rem",
+                    zIndex: 2, background: "var(--surface)",
+                    border: "1px solid var(--border)", borderRadius: "0.75rem",
+                    padding: "0.65rem 1rem",
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  <p style={{ fontSize: "0.65rem", color: "var(--text-muted)", marginBottom: "0.1rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                    Status
+                  </p>
+                  <p style={{ fontFamily: "DM Serif Display, serif", fontSize: "0.9rem", color: "var(--text-primary)" }}>
+                    Open to work
+                  </p>
+                </motion.div>
               </motion.div>
             </div>
+          </div>
 
-            {/* Right: profile photo */}
+          {/* ── Mobile layout: tag → h1 → photo+badge → p → buttons → social ── */}
+          <div className="hero-mobile" style={{ textAlign: "center" }}>
+
+            <motion.span
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="tag"
+              style={{ display: "inline-flex", marginBottom: "1.25rem" }}
+            >
+              Welcome to my portfolio
+            </motion.span>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              style={{
+                fontFamily: "DM Serif Display, serif",
+                fontSize: "clamp(2.5rem, 10vw, 3.5rem)",
+                lineHeight: 1.1, marginBottom: "2rem",
+                color: "var(--text-primary)",
+              }}
+            >
+              Building digital
+              <br />
+              <span style={{ color: "var(--accent)" }}>experiences</span>
+              <br />
+              that matter.
+            </motion.h1>
+
+            {/* Photo + status badge centered */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="hero-photo"
-              style={{ position: "relative" }}
+              style={{
+                display: "flex", flexDirection: "column",
+                alignItems: "center", marginBottom: "2rem",
+              }}
             >
+              <ProfilePhoto size={200} />
               <div style={{
-                position: "absolute", inset: "-1rem",
-                background: "var(--accent-subtle)",
-                borderRadius: "50%", zIndex: 0,
-              }} />
-              <div style={{
-                width: "280px", height: "280px",
-                borderRadius: "50%", overflow: "hidden",
-                border: "4px solid var(--surface)",
-                boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
-                position: "relative", zIndex: 1,
+                marginTop: "1rem",
+                background: "var(--surface)",
+                border: "1px solid var(--border)",
+                borderRadius: "0.75rem",
+                padding: "0.5rem 1.25rem",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                textAlign: "center",
               }}>
-                <Image
-                  src="/images/profile.jpg"
-                  alt="Emmanuel Abolade"
-                  fill
-                  sizes="280px"
-                  style={{ objectFit: "cover", objectPosition: "top center" }}
-                  priority
-                />
-              </div>
-
-              {/* Floating badge */}
-              <motion.div
-                animate={{ y: [0, -6, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                style={{
-                  position: "absolute", bottom: "-0.5rem", left: "-1.5rem",
-                  zIndex: 2, background: "var(--surface)",
-                  border: "1px solid var(--border)", borderRadius: "0.75rem",
-                  padding: "0.65rem 1rem",
-                  boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
-                }}
-              >
-                <p style={{ fontSize: "0.65rem", color: "var(--text-muted)", marginBottom: "0.1rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                  Based in
+                <p style={{ fontSize: "0.65rem", color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.1rem" }}>
+                  Status
                 </p>
                 <p style={{ fontFamily: "DM Serif Display, serif", fontSize: "0.9rem", color: "var(--text-primary)" }}>
-                  Ireland
+                  Open to work
                 </p>
-              </motion.div>
+              </div>
             </motion.div>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              style={{
+                fontSize: "1rem", color: "var(--text-secondary)",
+                lineHeight: 1.8, marginBottom: "2rem",
+              }}
+            >
+              Software developer based in Ireland, focused on building
+              clean, purposeful and user-driven digital systems. Final-year
+              BSc student at SETU Carlow.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              style={{
+                display: "flex", flexWrap: "wrap", gap: "1rem",
+                marginBottom: "2rem", justifyContent: "center",
+              }}
+            >
+              <Link href="/projects" className="btn-primary">
+                View My Work <ArrowRight size={16} />
+              </Link>
+              <a href="/cv.pdf" className="btn-outline" download>
+                <Download size={16} /> Download CV
+              </a>
+            </motion.div>
+
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <SocialLinks />
+            </div>
           </div>
         </div>
 
         <style>{`
+          @media (min-width: 769px) {
+            .hero-desktop { display: block; }
+            .hero-mobile  { display: none;  }
+          }
           @media (max-width: 768px) {
-            .hero-grid {
-              grid-template-columns: 1fr !important;
-              text-align: center;
-            }
-            .hero-photo {
-              display: flex !important;
-              justify-content: center;
-              order: -1;
-              margin-bottom: 1rem;
-            }
-            .hero-photo > div:last-child {
-              width: 180px !important;
-              height: 180px !important;
-            }
-            .hero-photo > div:first-child {
-              inset: -0.75rem !important;
-            }
+            .hero-desktop { display: none;  }
+            .hero-mobile  { display: block; }
           }
         `}</style>
       </section>
@@ -328,10 +375,10 @@ export default function HomeClient({
             gap: "2rem",
           }}>
             {[
-              { value: 3, suffix: "+", label: "Years building" },
-              { value: 10, suffix: "+", label: "Projects shipped" },
-              { value: 15, suffix: "+", label: "Technologies used" },
-              { value: 100, suffix: "%", label: "Passion for code" },
+              { value: 3,   suffix: "+", label: "Years building"     },
+              { value: 10,  suffix: "+", label: "Projects shipped"   },
+              { value: 15,  suffix: "+", label: "Technologies used"  },
+              { value: 100, suffix: "%", label: "Passion for code"   },
             ].map(({ value, suffix, label }) => (
               <motion.div
                 key={label}
@@ -380,9 +427,7 @@ export default function HomeClient({
               </p>
               <h2 className="section-title">Featured Projects</h2>
               <div className="divider" />
-              <p className="section-subtitle">
-                A curated selection of what I have built.
-              </p>
+              <p className="section-subtitle">A curated selection of what I have built.</p>
             </div>
             <Link href="/projects" className="btn-outline" style={{ whiteSpace: "nowrap" }}>
               All Projects <ArrowRight size={15} />
@@ -390,10 +435,7 @@ export default function HomeClient({
           </motion.div>
 
           {projects.length === 0 ? (
-            <div style={{
-              textAlign: "center", padding: "3rem",
-              color: "var(--text-muted)", fontSize: "0.9rem",
-            }}>
+            <div style={{ textAlign: "center", padding: "3rem", color: "var(--text-muted)", fontSize: "0.9rem" }}>
               Projects will appear here once published and featured in the admin dashboard.
             </div>
           ) : (
@@ -445,9 +487,7 @@ export default function HomeClient({
                 </p>
                 <h2 className="section-title">Latest Articles</h2>
                 <div className="divider" />
-                <p className="section-subtitle">
-                  Thoughts on software, learning and building things.
-                </p>
+                <p className="section-subtitle">Thoughts on software, learning and building things.</p>
               </div>
               <Link href="/blog" className="btn-outline" style={{ whiteSpace: "nowrap" }}>
                 All Articles <ArrowRight size={15} />
@@ -483,18 +523,13 @@ export default function HomeClient({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.4 }}
-            style={{
-              maxWidth: "560px", margin: "0 auto", textAlign: "center",
-            }}
+            style={{ maxWidth: "560px", margin: "0 auto", textAlign: "center" }}
           >
             <h2 className="section-title" style={{ marginBottom: "1rem" }}>
               Stay in the loop
             </h2>
-            <p style={{
-              color: "var(--text-secondary)", marginBottom: "2rem", lineHeight: 1.7,
-            }}>
-              Get notified when I publish new articles, projects, or resources.
-              No spam — ever.
+            <p style={{ color: "var(--text-secondary)", marginBottom: "2rem", lineHeight: 1.7 }}>
+              Get notified when I publish new articles, projects, or resources. No spam — ever.
             </p>
             <NewsletterForm />
             <p style={{ marginTop: "1rem", fontSize: "0.8rem", color: "var(--text-muted)" }}>
@@ -504,6 +539,56 @@ export default function HomeClient({
         </div>
       </section>
     </>
+  )
+}
+
+// Shared social links component
+function SocialLinks() {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5, delay: 0.4 }}
+      style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}
+    >
+      <span style={{
+        fontSize: "0.78rem", color: "var(--text-muted)",
+        letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600,
+      }}>
+        Find me on
+      </span>
+      {[
+        { href: "https://github.com/EmmanuelAbolade", icon: GitBranch, label: "GitHub"   },
+        { href: "https://linkedin.com/in/emmanuel-m-abolade", icon: Briefcase, label: "LinkedIn" },
+        { href: "mailto:emab.dev.tech@gmail.com", icon: Mail, label: "Email" },
+      ].map(({ href, icon: Icon, label }) => (
+        <motion.a
+          key={href}
+          href={href}
+          target={href.startsWith("mailto") ? undefined : "_blank"}
+          rel="noopener noreferrer"
+          aria-label={label}
+          whileHover={{ scale: 1.1, y: -2 }}
+          style={{
+            width: "2.25rem", height: "2.25rem", borderRadius: "0.375rem",
+            border: "1px solid var(--border)", background: "var(--surface)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: "var(--text-secondary)", textDecoration: "none",
+            transition: "border-color 0.2s ease, color 0.2s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = "var(--accent)"
+            e.currentTarget.style.color = "var(--accent)"
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = "var(--border)"
+            e.currentTarget.style.color = "var(--text-secondary)"
+          }}
+        >
+          <Icon size={15} />
+        </motion.a>
+      ))}
+    </motion.div>
   )
 }
 
@@ -518,9 +603,7 @@ function ProjectCard({ project }: { project: Project }) {
         onHoverEnd={() => setHovered(false)}
         animate={{
           y: hovered ? -5 : 0,
-          boxShadow: hovered
-            ? "0 16px 40px rgba(0,0,0,0.1)"
-            : "0 2px 8px rgba(0,0,0,0.04)",
+          boxShadow: hovered ? "0 16px 40px rgba(0,0,0,0.1)" : "0 2px 8px rgba(0,0,0,0.04)",
         }}
         transition={{ duration: 0.25 }}
         style={{
@@ -531,7 +614,6 @@ function ProjectCard({ project }: { project: Project }) {
           transition: "border-color 0.2s ease",
         }}
       >
-        {/* Image */}
         <div style={{
           position: "relative", aspectRatio: "16/9",
           overflow: "hidden", background: "var(--bg-secondary)",
@@ -560,7 +642,6 @@ function ProjectCard({ project }: { project: Project }) {
             </div>
           )}
 
-          {/* Hover overlay with links */}
           {hovered && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -595,7 +676,6 @@ function ProjectCard({ project }: { project: Project }) {
             </motion.div>
           )}
 
-          {/* Featured badge */}
           <div style={{
             position: "absolute", top: "0.75rem", left: "0.75rem",
             background: "var(--accent)", color: "var(--bg)",
@@ -608,7 +688,6 @@ function ProjectCard({ project }: { project: Project }) {
           </div>
         </div>
 
-        {/* Content */}
         <div style={{ padding: "1.25rem" }}>
           <h3 style={{
             fontFamily: "DM Serif Display, serif",
@@ -667,8 +746,7 @@ function PostRow({ post }: { post: Post }) {
           cursor: "pointer",
         }}
       >
-        {/* Cover image thumbnail */}
-        {post.cover_image && (
+        {post.cover_image ? (
           <div style={{
             width: "72px", height: "72px", minWidth: "72px",
             borderRadius: "0.5rem", overflow: "hidden",
@@ -682,10 +760,7 @@ function PostRow({ post }: { post: Post }) {
               style={{ objectFit: "cover" }}
             />
           </div>
-        )}
-
-        {/* No image: icon placeholder */}
-        {!post.cover_image && (
+        ) : (
           <div style={{
             width: "72px", height: "72px", minWidth: "72px",
             borderRadius: "0.5rem",
@@ -696,7 +771,6 @@ function PostRow({ post }: { post: Post }) {
           </div>
         )}
 
-        {/* Text */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <h3 style={{
             fontFamily: "DM Serif Display, serif",
@@ -737,7 +811,6 @@ function PostRow({ post }: { post: Post }) {
           </div>
         </div>
 
-        {/* Arrow */}
         <motion.div
           animate={{ x: hovered ? 4 : 0 }}
           transition={{ duration: 0.2 }}
