@@ -8,6 +8,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { Clock, Calendar, ArrowLeft, Tag } from "lucide-react"
+import { generatePostMetadata } from "@/lib/seo"
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -24,21 +25,15 @@ function formatDate(dateStr: string | null): string {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const supabase  = await createClient()
-
+  const supabase = await createClient()
   const { data: post } = await supabase
     .from("posts")
-    .select("title, meta_description, excerpt")
+    .select("title, excerpt, cover_image, slug, published_at, tags, reading_time")
     .eq("slug", slug)
-    .eq("status", "published")
     .single()
 
   if (!post) return { title: "Post Not Found" }
-
-  return {
-    title: post.title,
-    description: post.meta_description ?? post.excerpt ?? undefined,
-  }
+  return generatePostMetadata(post)
 }
 
 export default async function BlogPostPage({ params }: Props) {

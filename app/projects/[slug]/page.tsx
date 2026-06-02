@@ -8,6 +8,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import ProjectDetail from "./ProjectDetail"
+import { generateProjectMetadata } from "@/lib/seo"
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -18,16 +19,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const supabase = await createClient()
   const { data: project } = await supabase
     .from("projects")
-    .select("title, excerpt")
+    .select("title, excerpt, image_url, slug, technologies")
     .eq("slug", slug)
-    .eq("published", true)
     .single()
 
   if (!project) return { title: "Project Not Found" }
-  return {
-    title: project.title,
-    description: project.excerpt ?? undefined,
-  }
+  return generateProjectMetadata(project)
+
 }
 
 export default async function ProjectPage({ params }: Props) {
