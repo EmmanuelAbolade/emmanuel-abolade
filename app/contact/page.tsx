@@ -198,6 +198,7 @@ export default function ContactPage() {
               gap: "4rem",
               alignItems: "start",
             }}
+            className="contact-grid"
           >
 
             {/* Left: contact info */}
@@ -523,6 +524,7 @@ export default function ContactPage() {
                     gridTemplateColumns: "1fr 1fr",
                     gap: "1rem",
                   }}
+                  className="contact-name-email"
                 >
                   <div>
                     <label htmlFor="name" style={labelStyle}>
@@ -694,8 +696,13 @@ export default function ContactPage() {
           to   { transform: rotate(360deg); }
         }
         @media (max-width: 768px) {
-          .contact-grid { grid-template-columns: 1fr !important; }
-          .contact-name-email { grid-template-columns: 1fr !important; }
+          .contact-grid {
+            grid-template-columns: 1fr !important;
+            gap: 2rem !important;
+          }
+          .contact-name-email {
+            grid-template-columns: 1fr !important;
+          }
         }
       `}</style>
     </div>
