@@ -6,7 +6,7 @@
 import { useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
-import { Code2, Eye, EyeOff, AlertCircle, Loader } from "lucide-react"
+import { Code2, Eye, EyeOff, AlertCircle, Link, Loader } from "lucide-react"
 
 function LoginForm() {
   const router       = useRouter()
@@ -255,6 +255,7 @@ function LoginForm() {
                 cursor: loading ? "not-allowed" : "pointer",
               }}
             >
+              
               {loading ? (
                 <>
                   <Loader
@@ -267,6 +268,19 @@ function LoginForm() {
                 "Sign In"
               )}
             </button>
+            <div style={{ textAlign: "center", marginTop: "1rem" }}>
+              <Link
+                href="/forgot-password"
+                style={{
+                  fontSize: "0.825rem",
+                  color: "var(--text-muted)",
+                  textDecoration: "none",
+                  transition: "color 0.2s ease",
+                }}
+              >
+                Forgot your password?
+              </Link>
+            </div>
           </form>
         </div>
 
