@@ -1,6 +1,8 @@
 // app/about/page.tsx
 // About page - bio, skills, experience timeline, and education
 
+import { createClient } from "@/lib/supabase/server"
+import TestimonialsSection from "@/components/TestimonialsSection"
 import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
@@ -97,7 +99,14 @@ const EDUCATION = [
   },
 ]
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const supabase = await createClient()
+  const { data: testimonials } = await supabase
+    .from("testimonials")
+    .select("*")
+    .eq("published", true)
+    .order("created_at", { ascending: false })
+
   return (
     <div style={{ background: "var(--bg)" }}>
 
@@ -656,6 +665,7 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+      <TestimonialsSection testimonials={testimonials ?? []} />
 
       {/* CTA section */}
       <section

@@ -18,6 +18,7 @@ import {
   Users,
   LogOut,
   Menu,
+  Star,
   X,
 } from "lucide-react"
 
@@ -29,6 +30,7 @@ const NAV_ITEMS = [
   { href: "/admin/categories",  label: "Categories",  icon: Tag             },
   { href: "/admin/messages",    label: "Messages",    icon: MessageSquare   },
   { href: "/admin/subscribers", label: "Subscribers", icon: Users           },
+  { href: "/admin/testimonials", label: "Testimonials", icon: Star },
 ]
 
 export default function AdminSidebar({ userEmail }: { userEmail: string }) {
