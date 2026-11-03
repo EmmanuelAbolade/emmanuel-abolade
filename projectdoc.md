@@ -90,6 +90,7 @@ Tables (all with Row Level Security — public reads published content, the logg
 - **New CV:** Site Content → CV → Add → upload PDF → Add. It becomes live at once; the old one moves to Hidden.
 - **Change a photo:** Site Content → Home/About → photo section → Add new (becomes live) — old one kept as Hidden; Archive it to tuck it away.
 - **Rotate several badges/words:** add more items and keep them Published.
+- **Post layouts:** Posts → edit → Layout Style (Standard / Minimal / Case study / Hero image). Hero image needs a cover image. The contents sidebar appears only if "Show Table of Contents" is ticked (never in Minimal).
 - **Hide vs Archive vs Delete:** Hidden = not on site, still in list; Archived = not on site, collapsed under "Show archived"; Delete = permanent.
 
 ---
@@ -121,6 +122,15 @@ Tables (all with Row Level Security — public reads published content, the logg
 ---
 
 ## 8. Change log
+
+### 2026-11-03 — Blog post layout styles made real
+- The post "Layout Style" setting previously did almost nothing (Hero image was identical to Standard). `app/blog/[slug]/page.tsx` now renders four distinct layouts:
+  - **Standard**: cover banner, title below, contents sidebar.
+  - **Minimal**: no cover, no sidebar, narrow centred column, larger text.
+  - **Case study**: tinted summary header with "Case Study" label and key facts (published, reading time, topics), framed cover overlapping the header, numbered H2 sections.
+  - **Hero image**: full-screen cover with title, tags, excerpt and byline over the image (falls back to Standard if the post has no cover).
+- The "Show Table of Contents" checkbox is now honoured (previously ignored). New posts default to ticked.
+- The admin form shows a one-line description under the Layout Style dropdown.
 
 ### 2026-11-03 — Editable site content, admin UX, galleries
 - New **Site Content** admin (`/admin/site`): Home hero text, rotating headline words, home/about photos, photo badges, stats, About bio + section subtitles + "work together" box, skills, experience, education, beyond code, CV — each with Published/Hidden/Archived, reorder, delete.

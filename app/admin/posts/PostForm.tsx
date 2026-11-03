@@ -58,12 +58,18 @@ type Post = {
 
 const STATUSES      = ["draft", "review", "published", "archived"]
 const LAYOUT_STYLES = ["standard", "minimal", "case_study", "hero_image"]
+const LAYOUT_HINTS: Record<string, string> = {
+  standard:   "Cover banner, title below, contents sidebar.",
+  minimal:    "No cover or sidebar — centred, distraction-free reading.",
+  case_study: "Summary header with key facts, framed cover, numbered sections.",
+  hero_image: "Full-screen cover with the title on the image. Needs a cover image.",
+}
 
 const empty: Post = {
   title: "", slug: "", excerpt: "", content: "", cover_image: "", gallery: [],
   hide_cover_image: false, meta_description: "", canonical_url: "",
   tags: [], status: "draft", featured: false, allow_comments: true,
-  show_table_of_contents: false, layout_style: "standard",
+  show_table_of_contents: true, layout_style: "standard",
   reading_time: "", pinned_order: "",
 }
 
@@ -464,6 +470,7 @@ export default function PostForm({ initial }: { initial?: Partial<Post> }) {
                 </option>
               ))}
             </select>
+            <p style={hintStyle}>{LAYOUT_HINTS[form.layout_style] ?? ""}</p>
           </div>
           <div>
             <label style={labelStyle}>Reading Time (min)</label>
