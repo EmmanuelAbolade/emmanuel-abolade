@@ -2,7 +2,7 @@
 // Admin Site Content page - edit Home and About page content, photos, badges, stats and CV
 
 import { createClient } from "@/lib/supabase/server"
-import { DEFAULT_SITE_DATA, type SiteItem } from "@/lib/site-content"
+import { DEFAULT_AUTHOR, DEFAULT_SITE_DATA, type SiteItem } from "@/lib/site-content"
 import SiteContentClient from "./SiteContentClient"
 
 export default async function AdminSitePage() {
@@ -28,6 +28,7 @@ export default async function AdminSitePage() {
       setupError={setupError}
       hero={{ ...DEFAULT_SITE_DATA.hero, ...(content.hero ?? {}) }}
       about={{ ...DEFAULT_SITE_DATA.about, ...(content.about ?? {}) }}
+      author={{ ...DEFAULT_AUTHOR, ...(content.author ?? {}) }}
       items={(itemsRes.data ?? []) as SiteItem[]}
     />
   )

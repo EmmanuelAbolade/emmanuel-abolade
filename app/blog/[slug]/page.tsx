@@ -16,6 +16,8 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { Clock, Calendar, ArrowLeft, Tag, ArrowRight } from "lucide-react"
 import { generatePostMetadata } from "@/lib/seo"
+import { getAuthor } from "@/lib/site-content-server"
+import type { AuthorContent } from "@/lib/site-content"
 import BlogPostClient, { TOC } from "./BlogPostClient"
 
 type Props = {
@@ -73,12 +75,15 @@ export default async function BlogPostPage({ params }: Props) {
   if (error || !data) notFound()
   const post = data as Post
 
-  const { data: relatedPosts } = await supabase
-    .from("posts")
-    .select("id, title, slug, excerpt, cover_image, reading_time, published_at, tags")
-    .eq("status", "published")
-    .neq("slug", slug)
-    .limit(3)
+  const [{ data: relatedPosts }, author] = await Promise.all([
+    supabase
+      .from("posts")
+      .select("id, title, slug, excerpt, cover_image, reading_time, published_at, tags")
+      .eq("status", "published")
+      .neq("slug", slug)
+      .limit(3),
+    getAuthor(),
+  ])
 
   const hasCover = !!post.cover_image && !post.hide_cover_image
   let layout: Layout = (["standard", "minimal", "case_study", "hero_image"] as const)
@@ -92,7 +97,7 @@ export default async function BlogPostPage({ params }: Props) {
 
       <BlogPostClient content={post.content ?? ""} />
 
-      {layout === "hero_image" && <HeroHeader post={post} />}
+      {layout === "hero_image" && <HeroHeader post={post} author={author} />}
 
       {layout === "case_study" && <CaseStudyHeader post={post} hasCover={hasCover} />}
 
@@ -118,7 +123,7 @@ export default async function BlogPostPage({ params }: Props) {
       >
         <article style={{ padding: layout === "minimal" ? "6rem 0 4rem" : "3rem 0 4rem", minWidth: 0 }}>
 
-          {layout === "standard" && <StandardHeader post={post} />}
+          {layout === "standard" && <StandardHeader post={post} author={author} />}
           {layout === "minimal" && <MinimalHeader post={post} />}
 
           <div
@@ -136,7 +141,7 @@ export default async function BlogPostPage({ params }: Props) {
             <div style={{ marginTop: "2.5rem" }}><Tags tags={post.tags} /></div>
           )}
 
-          <AuthorCard />
+          <AuthorCard author={author} />
 
           {post.allow_comments && <GiscusComments />}
         </article>
@@ -228,16 +233,16 @@ function Tags({ tags, light = false }: { tags: string[]; light?: boolean }) {
   )
 }
 
-function Byline({ post, light = false }: { post: Post; light?: boolean }) {
+function Byline({ post, author, light = false }: { post: Post; author: AuthorContent; light?: boolean }) {
   const muted = light ? "rgba(255,255,255,0.8)" : "var(--text-muted)"
   const date  = post.published_at ?? post.created_at
   return (
     <div style={{ display: "flex", flexWrap: "wrap", gap: "1.25rem", alignItems: "center" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
         <div style={{ width: "2rem", height: "2rem", borderRadius: "50%", overflow: "hidden", border: `2px solid ${light ? "rgba(255,255,255,0.6)" : "var(--border)"}`, position: "relative", flexShrink: 0 }}>
-          <Image src="/images/profile.jpg" alt="Emmanuel Abolade" fill sizes="32px" style={{ objectFit: "cover", objectPosition: "top" }} />
+          <Image src={author.photo} alt={author.name} fill sizes="32px" style={{ objectFit: "cover", objectPosition: "top" }} />
         </div>
-        <span style={{ fontSize: "0.875rem", fontWeight: 600, color: light ? "#fff" : "var(--text-primary)" }}>Emmanuel Abolade</span>
+        <span style={{ fontSize: "0.875rem", fontWeight: 600, color: light ? "#fff" : "var(--text-primary)" }}>{author.name}</span>
       </div>
       <span style={{ color: light ? "rgba(255,255,255,0.5)" : "var(--border)" }}>·</span>
       {date && (
@@ -254,18 +259,20 @@ function Byline({ post, light = false }: { post: Post; light?: boolean }) {
   )
 }
 
-function AuthorCard() {
+function AuthorCard({ author }: { author: AuthorContent }) {
   return (
     <div style={{ marginTop: "3rem", padding: "1.5rem", background: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "0.75rem", display: "flex", gap: "1.25rem", alignItems: "center" }}>
       <div style={{ width: "4rem", height: "4rem", minWidth: "4rem", borderRadius: "50%", overflow: "hidden", border: "3px solid var(--surface)", position: "relative" }}>
-        <Image src="/images/profile.jpg" alt="Emmanuel Abolade" fill sizes="64px" style={{ objectFit: "cover", objectPosition: "top" }} />
+        <Image src={author.photo} alt={author.name} fill sizes="64px" style={{ objectFit: "cover", objectPosition: "top" }} />
       </div>
       <div>
-        <p style={{ fontFamily: "DM Serif Display, serif", fontSize: "1rem", color: "var(--text-primary)", marginBottom: "0.25rem" }}>Emmanuel Abolade</p>
-        <p style={{ fontSize: "0.825rem", color: "var(--text-secondary)", lineHeight: 1.6 }}>Software developer based in Ireland, focused on full-stack web development and machine learning.</p>
-        <Link href="/about" style={{ fontSize: "0.8rem", color: "var(--accent)", textDecoration: "none", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "0.25rem", marginTop: "0.4rem" }}>
-          About me <ArrowRight size={12} />
-        </Link>
+        <p style={{ fontFamily: "DM Serif Display, serif", fontSize: "1rem", color: "var(--text-primary)", marginBottom: "0.25rem" }}>{author.name}</p>
+        {author.bio && <p style={{ fontSize: "0.825rem", color: "var(--text-secondary)", lineHeight: 1.6 }}>{author.bio}</p>}
+        {author.link_label && author.link_href && (
+          <Link href={author.link_href} style={{ fontSize: "0.8rem", color: "var(--accent)", textDecoration: "none", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "0.25rem", marginTop: "0.4rem" }}>
+            {author.link_label} <ArrowRight size={12} />
+          </Link>
+        )}
       </div>
     </div>
   )
@@ -273,7 +280,7 @@ function AuthorCard() {
 
 // ── Layout headers ────────────────────────────────────────────
 
-function StandardHeader({ post }: { post: Post }) {
+function StandardHeader({ post, author }: { post: Post; author: AuthorContent }) {
   return (
     <>
       <BackLink />
@@ -287,7 +294,7 @@ function StandardHeader({ post }: { post: Post }) {
         </p>
       )}
       <div style={{ paddingBottom: "1.5rem", borderBottom: "1px solid var(--border)", marginBottom: "2.5rem" }}>
-        <Byline post={post} />
+        <Byline post={post} author={author} />
       </div>
     </>
   )
@@ -358,7 +365,7 @@ function CaseStudyHeader({ post, hasCover }: { post: Post; hasCover: boolean }) 
   )
 }
 
-function HeroHeader({ post }: { post: Post }) {
+function HeroHeader({ post, author }: { post: Post; author: AuthorContent }) {
   return (
     <header style={{ position: "relative", width: "100%", minHeight: "clamp(440px, 85vh, 780px)", display: "flex", alignItems: "flex-end", overflow: "hidden", background: "#111" }}>
       <Image src={post.cover_image!} alt={post.title} fill sizes="100vw" style={{ objectFit: "cover" }} priority />
@@ -374,7 +381,7 @@ function HeroHeader({ post }: { post: Post }) {
             {post.excerpt}
           </p>
         )}
-        <Byline post={post} light />
+        <Byline post={post} author={author} light />
       </div>
     </header>
   )

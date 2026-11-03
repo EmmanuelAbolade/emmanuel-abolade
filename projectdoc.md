@@ -67,7 +67,7 @@ Tables (all with Row Level Security — public reads published content, the logg
 
 | Table | Purpose |
 |---|---|
-| `site_content` | One row per text block: `hero` (welcome line, headline, intro) and `about` (name, headline, location, bio, section subtitles, "work together" box). `value` is JSON. |
+| `site_content` | One row per text block: `hero` (welcome line, headline, intro), `about` (name, headline, location, bio, section subtitles, "work together" box) and `author` (blog author card: name, bio, photo, link). `value` is JSON. |
 | `site_items` | Repeatable items with `section`, `data` (JSON), `status` (`published` / `hidden` / `archived`), `sort_order`. Sections: `hero_word`, `home_photo`, `about_photo`, `home_badge`, `about_badge`, `stat`, `skill_group`, `experience`, `education`, `beyond_code`, `cv`. |
 | `projects.gallery`, `posts.gallery` | `text[]` of extra image URLs. |
 
@@ -90,6 +90,7 @@ Tables (all with Row Level Security — public reads published content, the logg
 - **New CV:** Site Content → CV → Add → upload PDF → Add. It becomes live at once; the old one moves to Hidden.
 - **Change a photo:** Site Content → Home/About → photo section → Add new (becomes live) — old one kept as Hidden; Archive it to tuck it away.
 - **Rotate several badges/words:** add more items and keep them Published.
+- **Blog author card:** Site Content → Blog posts → edit photo, name, bio, link → Save.
 - **Post layouts:** Posts → edit → Layout Style (Standard / Minimal / Case study / Hero image). Hero image needs a cover image. The contents sidebar appears only if "Show Table of Contents" is ticked (never in Minimal).
 - **Hide vs Archive vs Delete:** Hidden = not on site, still in list; Archived = not on site, collapsed under "Show archived"; Delete = permanent.
 
@@ -123,7 +124,7 @@ Tables (all with Row Level Security — public reads published content, the logg
 
 ## 8. Change log
 
-### 2026-11-03 — Blog post layout styles made real
+### 2026-11-03 — Blog post layout styles made real + editable author card
 - The post "Layout Style" setting previously did almost nothing (Hero image was identical to Standard). `app/blog/[slug]/page.tsx` now renders four distinct layouts:
   - **Standard**: cover banner, title below, contents sidebar.
   - **Minimal**: no cover, no sidebar, narrow centred column, larger text.
@@ -131,6 +132,7 @@ Tables (all with Row Level Security — public reads published content, the logg
   - **Hero image**: full-screen cover with title, tags, excerpt and byline over the image (falls back to Standard if the post has no cover).
 - The "Show Table of Contents" checkbox is now honoured (previously ignored). New posts default to ticked.
 - The admin form shows a one-line description under the Layout Style dropdown.
+- **Author card editable**: the "About me" card at the end of each post (photo, name, short bio, link) and the byline under post titles were hard-coded. They now come from `site_content` key `author` (`getAuthor()` in `lib/site-content-server.ts`, defaults `DEFAULT_AUTHOR`). Edit them in Admin → Site Content → **Blog posts** tab, which has a live preview. No SQL needed: the row is created on first save.
 
 ### 2026-11-03 — Editable site content, admin UX, galleries
 - New **Site Content** admin (`/admin/site`): Home hero text, rotating headline words, home/about photos, photo badges, stats, About bio + section subtitles + "work together" box, skills, experience, education, beyond code, CV — each with Published/Hidden/Archived, reorder, delete.

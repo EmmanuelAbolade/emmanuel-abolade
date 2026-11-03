@@ -16,6 +16,7 @@ import { SITE_ICONS } from "@/lib/site-icons"
 import {
   SECTIONS,
   type AboutContent,
+  type AuthorContent,
   type FieldDef,
   type HeroContent,
   type ItemStatus,
@@ -95,6 +96,7 @@ const STATUS_META: Record<ItemStatus, { label: string; color: string; bg: string
 const TABS = [
   { key: "home",  label: "Home page",  sections: ["hero_word", "home_photo", "home_badge", "stat"] as SectionKey[] },
   { key: "about", label: "About page", sections: ["about_photo", "about_badge", "skill_group", "experience", "education", "beyond_code"] as SectionKey[] },
+  { key: "blog",  label: "Blog posts", sections: [] as SectionKey[] },
   { key: "cv",    label: "CV",         sections: ["cv"] as SectionKey[] },
 ]
 
@@ -104,11 +106,13 @@ export default function SiteContentClient({
   setupError,
   hero,
   about,
+  author,
   items: initialItems,
 }: {
   setupError: string | null
   hero: HeroContent
   about: AboutContent
+  author: AuthorContent
   items: SiteItem[]
 }) {
   const [tab, setTab]     = useState("home")
@@ -176,6 +180,7 @@ export default function SiteContentClient({
       <div style={{ display: "flex", flexDirection: "column", gap: "1.75rem" }}>
         {tab === "home"  && <HeroBlock initial={hero} />}
         {tab === "about" && <AboutBlock initial={about} />}
+        {tab === "blog"  && <AuthorBlock initial={author} />}
 
         {current.sections.map((key) => (
           <ItemsSection
@@ -277,6 +282,75 @@ function HeroBlock({ initial }: { initial: HeroContent }) {
           <textarea style={{ ...inputStyle, minHeight: "90px", resize: "vertical" }} value={form.intro} onChange={(e) => set("intro", e.target.value)} />
         </div>
         <SaveBar {...saver} label="Save hero text" />
+      </div>
+    </form>
+  )
+}
+
+function AuthorBlock({ initial }: { initial: AuthorContent }) {
+  const [form, setForm] = useState(initial)
+  const saver = useContentSaver("author")
+  const set = (k: keyof AuthorContent, v: string) => setForm((f) => ({ ...f, [k]: v }))
+
+  return (
+    <form
+      onSubmit={(e) => { e.preventDefault(); saver.save(form) }}
+      style={cardStyle}
+    >
+      <BlockHeader
+        title="Author card"
+        description="Shown at the end of every blog post. The photo and name are also used in the byline under each post title."
+      />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1.25rem", alignItems: "start" }}>
+        <div style={{ maxWidth: "220px" }}>
+          <ImageUpload
+            label="Photo"
+            value={form.photo}
+            onChange={(url) => set("photo", url)}
+            folder="avatars"
+            aspectRatio="1/1"
+          />
+          <p style={hintStyle}>Shown as a circle. Leave empty to use your default photo.</p>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <div>
+            <label style={labelStyle}>Name</label>
+            <input style={inputStyle} value={form.name} onChange={(e) => set("name", e.target.value)} />
+          </div>
+          <div>
+            <label style={labelStyle}>Short bio</label>
+            <textarea style={{ ...inputStyle, minHeight: "90px", resize: "vertical" }} value={form.bio} onChange={(e) => set("bio", e.target.value)} />
+            <p style={hintStyle}>One or two sentences. Leave empty to hide.</p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "1rem" }}>
+            <div>
+              <label style={labelStyle}>Link text</label>
+              <input style={inputStyle} value={form.link_label} onChange={(e) => set("link_label", e.target.value)} placeholder="About me" />
+            </div>
+            <div>
+              <label style={labelStyle}>Link goes to</label>
+              <input style={inputStyle} value={form.link_href} onChange={(e) => set("link_href", e.target.value)} placeholder="/about or https://..." />
+            </div>
+          </div>
+          <p style={{ ...hintStyle, marginTop: 0 }}>Leave the link text empty to hide the link.</p>
+        </div>
+      </div>
+      {/* Live preview */}
+      <div style={{ marginTop: "1.25rem" }}>
+        <p style={{ ...labelStyle, fontWeight: 500, color: "var(--text-muted)" }}>Preview</p>
+        <div style={{ padding: "1.25rem", background: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "0.75rem", display: "flex", gap: "1rem", alignItems: "center" }}>
+          <div style={{ width: "3.5rem", height: "3.5rem", minWidth: "3.5rem", borderRadius: "50%", overflow: "hidden", position: "relative", border: "3px solid var(--surface)" }}>
+            <Image src={form.photo || "/images/profile.jpg"} alt={form.name} fill sizes="56px" style={{ objectFit: "cover", objectPosition: "top" }} />
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <p style={{ fontFamily: "DM Serif Display, serif", color: "var(--text-primary)", marginBottom: "0.2rem" }}>{form.name || "Your name"}</p>
+            {form.bio && <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", lineHeight: 1.55 }}>{form.bio}</p>}
+            {form.link_label && <p style={{ fontSize: "0.78rem", color: "var(--accent)", fontWeight: 600, marginTop: "0.3rem" }}>{form.link_label} →</p>}
+          </div>
+        </div>
+      </div>
+      <div style={{ marginTop: "1.25rem" }}>
+        <SaveBar {...saver} label="Save author card" />
       </div>
     </form>
   )

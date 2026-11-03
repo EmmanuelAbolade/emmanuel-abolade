@@ -25,6 +25,15 @@ export type AboutContent = {
   cta_text: string
 }
 
+// Author card + byline shown on every blog post
+export type AuthorContent = {
+  name: string
+  bio: string
+  photo: string
+  link_label: string
+  link_href: string
+}
+
 export type Photo       = { url: string; alt: string }
 export type Badge       = { label: string; value: string }
 export type HeroWord    = { text: string }
@@ -64,6 +73,14 @@ export type SiteData = {
 }
 
 export const DEFAULT_PHOTO: Photo = { url: "/images/profile.jpg", alt: "Emmanuel Abolade" }
+
+export const DEFAULT_AUTHOR: AuthorContent = {
+  name: "Emmanuel Abolade",
+  bio: "Software developer based in Ireland, focused on full-stack web development and machine learning.",
+  photo: "/images/profile.jpg",
+  link_label: "About me",
+  link_href: "/about",
+}
 
 export const DEFAULT_SITE_DATA: SiteData = {
   hero: {

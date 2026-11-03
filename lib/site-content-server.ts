@@ -4,7 +4,9 @@
 
 import { createClient } from "@/lib/supabase/server"
 import {
+  DEFAULT_AUTHOR,
   DEFAULT_SITE_DATA,
+  type AuthorContent,
   type SiteData,
   type SiteItem,
   type SectionKey,
@@ -54,6 +56,25 @@ export async function getSiteData(): Promise<SiteData> {
     experience:  list("experience"),
     education:   list("education"),
     beyondCode:  list("beyond_code"),
+  }
+}
+
+// Author card + byline for blog posts (site_content key "author")
+export async function getAuthor(): Promise<AuthorContent> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("site_content")
+    .select("value")
+    .eq("key", "author")
+    .maybeSingle()
+
+  if (error || !data) return DEFAULT_AUTHOR
+  const saved = data.value as Partial<AuthorContent>
+  return {
+    ...DEFAULT_AUTHOR,
+    ...saved,
+    photo: saved.photo || DEFAULT_AUTHOR.photo,
+    name:  saved.name  || DEFAULT_AUTHOR.name,
   }
 }
 
