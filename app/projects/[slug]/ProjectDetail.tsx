@@ -1,12 +1,14 @@
 // app/projects/[slug]/ProjectDetail.tsx
 // Client component for individual project detail page
-// Features: animated entrance, full project info, achievements, learnings, related projects
+// Features: animated entrance, rich-text description, gallery, achievements, learnings, related projects
 
 "use client"
 
 import { motion } from "framer-motion"
 import Image from "next/image"
 import Link from "next/link"
+import ImageGallery from "@/components/ImageGallery"
+import { isHtml } from "@/lib/rich-text"
 import {
   ArrowLeft,
   ExternalLink,
@@ -37,6 +39,7 @@ type Project = {
   showcase_url: string | null
   live_url: string | null
   image_url: string | null
+  gallery?: string[] | null
   key_achievements: string[] | null
   learnings: string | null
   start_date: string | null
@@ -270,13 +273,26 @@ export default function ProjectDetail({
                   About this project
                 </h2>
                 <div className="divider" />
-                <p style={{
-                  color: "var(--text-secondary)", lineHeight: 1.85,
-                  fontSize: "1rem", whiteSpace: "pre-wrap",
-                }}>
-                  {project.description}
-                </p>
+                {isHtml(project.description) ? (
+                  <div
+                    className="prose-content"
+                    style={{ color: "var(--text-secondary)", lineHeight: 1.85, fontSize: "1rem" }}
+                    dangerouslySetInnerHTML={{ __html: project.description }}
+                  />
+                ) : (
+                  <p style={{
+                    color: "var(--text-secondary)", lineHeight: 1.85,
+                    fontSize: "1rem", whiteSpace: "pre-wrap",
+                  }}>
+                    {project.description}
+                  </p>
+                )}
               </div>
+            )}
+
+            {/* Gallery */}
+            {project.gallery && project.gallery.length > 0 && (
+              <ImageGallery images={project.gallery} title={project.title} />
             )}
 
             {/* Key achievements */}

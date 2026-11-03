@@ -9,6 +9,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { useSearchParams, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
+import { escapeRegExp } from "@/lib/text"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Search,
@@ -489,7 +490,7 @@ export default function SearchClient() {
 // Highlight matching text
 function Highlight({ text, query }: { text: string; query: string }) {
   if (!query || !text) return <>{text}</>
-  const parts = text.split(new RegExp(`(${query})`, "gi"))
+  const parts = text.split(new RegExp(`(${escapeRegExp(query)})`, "gi"))
   return (
     <>
       {parts.map((part, i) =>

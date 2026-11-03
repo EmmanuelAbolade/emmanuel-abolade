@@ -190,7 +190,7 @@ export default function ResourceForm({ initial }: { initial?: Partial<Resource> 
         style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
       >
         {/* Title and URL */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1rem" }}>
           <div>
             <label style={labelStyle}>
               Title <span style={{ color: "#ef4444" }}>*</span>
@@ -248,7 +248,7 @@ export default function ResourceForm({ initial }: { initial?: Partial<Resource> 
         </div>
 
         {/* Type, Pricing, Pinned Order */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "1rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: "1rem" }}>
           <div>
             <label style={labelStyle}>Resource Type</label>
             <select

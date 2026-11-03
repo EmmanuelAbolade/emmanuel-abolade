@@ -1,7 +1,8 @@
 // app/page.tsx
-// Home page - hero, stats strip, featured projects from DB, latest blog posts from DB, newsletter CTA
+// Home page - editable hero and stats strip, featured projects from DB, latest blog posts from DB, newsletter CTA
 
 import { createClient } from "@/lib/supabase/server"
+import { getSiteData } from "@/lib/site-content-server"
 import HomeClient from "./HomeClient"
 
 export default async function HomePage() {
@@ -24,5 +25,7 @@ export default async function HomePage() {
     .order("published_at", { ascending: false })
     .limit(3)
 
-  return <HomeClient projects={projects ?? []} posts={posts ?? []} />
+  const site = await getSiteData()
+
+  return <HomeClient projects={projects ?? []} posts={posts ?? []} site={site} />
 }

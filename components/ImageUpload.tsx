@@ -6,7 +6,7 @@
 
 import { useState, useRef } from "react"
 import Image from "next/image"
-import { createClient } from "@/lib/supabase/client"
+import { uploadImage, IMAGE_TYPES as ALLOWED_TYPES, MAX_IMAGE_MB as MAX_SIZE_MB } from "@/lib/upload"
 import { Upload, X, Loader, ImageIcon } from "lucide-react"
 
 type Props = {
@@ -16,9 +16,6 @@ type Props = {
   aspectRatio?: string
   label?: string
 }
-
-const MAX_SIZE_MB = 5
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"]
 
 export default function ImageUpload({
   value,
@@ -34,37 +31,12 @@ export default function ImageUpload({
 
   async function uploadFile(file: File) {
     setError("")
-
-    // Validate type
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      setError("Only JPG, PNG, WebP and GIF files are allowed.")
-      return
-    }
-
-    // Validate size
-    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-      setError(`File must be smaller than ${MAX_SIZE_MB}MB.`)
-      return
-    }
-
     setUploading(true)
 
-    const supabase  = createClient()
-    const ext       = file.name.split(".").pop()
-    const filename  = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+    const result = await uploadImage(file, folder)
+    if ("error" in result) setError(result.error)
+    else onChange(result.url)
 
-    const { error: uploadError } = await supabase.storage
-      .from("images")
-      .upload(filename, file, { upsert: false })
-
-    if (uploadError) {
-      setError("Upload failed. Please try again.")
-      setUploading(false)
-      return
-    }
-
-    const { data } = supabase.storage.from("images").getPublicUrl(filename)
-    onChange(data.publicUrl)
     setUploading(false)
   }
 

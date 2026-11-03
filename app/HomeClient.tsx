@@ -22,6 +22,9 @@ import {
   Star,
 } from "lucide-react"
 import NewsletterForm from "@/components/NewsletterForm"
+import FloatingBadges from "@/components/FloatingBadges"
+import { HeroEyebrow, RotatingWord } from "@/components/HeroText"
+import type { Photo, SiteData } from "@/lib/site-content"
 
 // Animated counter component
 function Counter({ to, suffix = "" }: { to: number; suffix?: string }) {
@@ -79,7 +82,7 @@ function formatDate(dateStr: string | null): string {
 }
 
 // Shared profile photo badge component
-function ProfilePhoto({ size = 280 }: { size?: number }) {
+function ProfilePhoto({ photo, size = 280 }: { photo: Photo; size?: number }) {
   return (
     <div style={{ position: "relative", display: "inline-block" }}>
       <div style={{
@@ -95,8 +98,8 @@ function ProfilePhoto({ size = 280 }: { size?: number }) {
         position: "relative", zIndex: 1,
       }}>
         <Image
-          src="/images/profile.jpg"
-          alt="Emmanuel Abolade"
+          src={photo.url}
+          alt={photo.alt || "Emmanuel Abolade"}
           fill
           sizes={`${size}px`}
           style={{ objectFit: "cover", objectPosition: "top center" }}
@@ -110,10 +113,15 @@ function ProfilePhoto({ size = 280 }: { size?: number }) {
 export default function HomeClient({
   projects,
   posts,
+  site,
 }: {
   projects: Project[]
   posts: Post[]
+  site: SiteData
 }) {
+  const { hero } = site
+  const words = site.heroWords.map((w) => w.text).filter(Boolean)
+
   return (
     <>
       {/* ── Hero ─────────────────────────────────────── */}
@@ -163,15 +171,7 @@ export default function HomeClient({
             }}>
               {/* Left: text */}
               <div>
-                <motion.span
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4 }}
-                  className="tag"
-                  style={{ display: "inline-flex", marginBottom: "1.5rem" }}
-                >
-                  Welcome to my portfolio
-                </motion.span>
+                {hero.eyebrow && <HeroEyebrow text={hero.eyebrow} />}
 
                 <motion.h1
                   initial={{ opacity: 0, y: 20 }}
@@ -184,11 +184,11 @@ export default function HomeClient({
                     color: "var(--text-primary)",
                   }}
                 >
-                  Building digital
+                  {hero.headline_top}
                   <br />
-                  <span style={{ color: "var(--accent)" }}>experiences</span>
+                  <RotatingWord words={words} />
                   <br />
-                  that matter.
+                  {hero.headline_bottom}
                 </motion.h1>
 
                 <motion.p
@@ -200,9 +200,7 @@ export default function HomeClient({
                     lineHeight: 1.8, maxWidth: "520px", marginBottom: "2.5rem",
                   }}
                 >
-                  Software developer based in Ireland, focused on building
-                  clean, purposeful and user-driven digital systems. Final-year
-                  BSc student at SETU Carlow.
+                  {hero.intro}
                 </motion.p>
 
                 <motion.div
@@ -214,7 +212,7 @@ export default function HomeClient({
                   <Link href="/projects" className="btn-primary">
                     View My Work <ArrowRight size={16} />
                   </Link>
-                  <a href="/cv.pdf" className="btn-outline" download>
+                  <a href="/cv" className="btn-outline" download>
                     <Download size={16} /> Download CV
                   </a>
                 </motion.div>
@@ -229,25 +227,15 @@ export default function HomeClient({
                 transition={{ duration: 0.6, delay: 0.2 }}
                 style={{ position: "relative" }}
               >
-                <ProfilePhoto size={280} />
-                <motion.div
-                  animate={{ y: [0, -6, 0] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                  style={{
-                    position: "absolute", bottom: "-0.5rem", left: "-1.5rem",
-                    zIndex: 2, background: "var(--surface)",
-                    border: "1px solid var(--border)", borderRadius: "0.75rem",
-                    padding: "0.65rem 1rem",
-                    boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
-                  }}
-                >
-                  <p style={{ fontSize: "0.65rem", color: "var(--text-muted)", marginBottom: "0.1rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                    Status
-                  </p>
-                  <p style={{ fontFamily: "DM Serif Display, serif", fontSize: "0.9rem", color: "var(--text-primary)" }}>
-                    Open to work
-                  </p>
-                </motion.div>
+                <ProfilePhoto photo={site.homePhoto} size={280} />
+                <FloatingBadges
+                  badges={site.homeBadges}
+                  slots={[
+                    { bottom: "-0.5rem", left: "-1.5rem" },
+                    { top: "0.75rem", right: "-2.25rem" },
+                    { top: "42%", left: "-3.25rem" },
+                  ]}
+                />
               </motion.div>
             </div>
           </div>
@@ -255,15 +243,7 @@ export default function HomeClient({
           {/* ── Mobile layout: tag → h1 → photo+badge → p → buttons → social ── */}
           <div className="hero-mobile" style={{ textAlign: "center" }}>
 
-            <motion.span
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-              className="tag"
-              style={{ display: "inline-flex", marginBottom: "1.25rem" }}
-            >
-              Welcome to my portfolio
-            </motion.span>
+            {hero.eyebrow && <HeroEyebrow text={hero.eyebrow} center />}
 
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
@@ -276,11 +256,11 @@ export default function HomeClient({
                 color: "var(--text-primary)",
               }}
             >
-              Building digital
+              {hero.headline_top}
               <br />
-              <span style={{ color: "var(--accent)" }}>experiences</span>
+              <RotatingWord words={words} />
               <br />
-              that matter.
+              {hero.headline_bottom}
             </motion.h1>
 
             {/* Photo + status badge centered */}
@@ -293,23 +273,11 @@ export default function HomeClient({
                 alignItems: "center", marginBottom: "2rem",
               }}
             >
-              <ProfilePhoto size={200} />
-              <div style={{
-                marginTop: "1rem",
-                background: "var(--surface)",
-                border: "1px solid var(--border)",
-                borderRadius: "0.75rem",
-                padding: "0.5rem 1.25rem",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                textAlign: "center",
-              }}>
-                <p style={{ fontSize: "0.65rem", color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.1rem" }}>
-                  Status
-                </p>
-                <p style={{ fontFamily: "DM Serif Display, serif", fontSize: "0.9rem", color: "var(--text-primary)" }}>
-                  Open to work
-                </p>
-              </div>
+              <ProfilePhoto photo={site.homePhoto} size={200} />
+              <FloatingBadges
+                badges={site.homeBadges}
+                slots={[{ position: "relative", marginTop: "1.25rem" }]}
+              />
             </motion.div>
 
             <motion.p
@@ -321,9 +289,7 @@ export default function HomeClient({
                 lineHeight: 1.8, marginBottom: "2rem",
               }}
             >
-              Software developer based in Ireland, focused on building
-              clean, purposeful and user-driven digital systems. Final-year
-              BSc student at SETU Carlow.
+              {hero.intro}
             </motion.p>
 
             <motion.div
@@ -338,7 +304,7 @@ export default function HomeClient({
               <Link href="/projects" className="btn-primary">
                 View My Work <ArrowRight size={16} />
               </Link>
-              <a href="/cv.pdf" className="btn-outline" download>
+              <a href="/cv" className="btn-outline" download>
                 <Download size={16} /> Download CV
               </a>
             </motion.div>
@@ -362,7 +328,7 @@ export default function HomeClient({
       </section>
 
       {/* ── Stats strip ──────────────────────────────── */}
-      <section style={{
+      {site.stats.length > 0 && <section style={{
         padding: "3rem 0",
         background: "var(--bg-secondary)",
         borderTop: "1px solid var(--border)",
@@ -374,14 +340,9 @@ export default function HomeClient({
             gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
             gap: "2rem",
           }}>
-            {[
-              { value: 3,   suffix: "+", label: "Years building"     },
-              { value: 10,  suffix: "+", label: "Projects shipped"   },
-              { value: 15,  suffix: "+", label: "Technologies used"  },
-              { value: 100, suffix: "%", label: "Passion for code"   },
-            ].map(({ value, suffix, label }) => (
+            {site.stats.map(({ value, suffix, label }, i) => (
               <motion.div
-                key={label}
+                key={`${label}-${i}`}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -393,7 +354,7 @@ export default function HomeClient({
                   fontSize: "2.5rem", color: "var(--accent)",
                   lineHeight: 1, marginBottom: "0.35rem",
                 }}>
-                  <Counter to={value} suffix={suffix} />
+                  <Counter to={value} suffix={suffix ?? ""} />
                 </p>
                 <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", fontWeight: 500 }}>
                   {label}
@@ -402,7 +363,7 @@ export default function HomeClient({
             ))}
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* ── Featured Projects ─────────────────────────── */}
       <section className="section" style={{ background: "var(--bg)" }}>

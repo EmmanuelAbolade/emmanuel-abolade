@@ -1,6 +1,6 @@
 // app/admin/projects/page.tsx
-// Admin Projects page - lists all projects with publish/unpublish, pin, and delete actions
-// Links to individual edit pages for full CRUD
+// Admin Projects page - lists all projects with image, status, publish toggle and actions
+// Rows stack into cards on mobile so titles stay readable
 
 import { createClient } from "@/lib/supabase/server"
 import Link from "next/link"
@@ -8,25 +8,33 @@ import {
   Plus,
   Pencil,
   Star,
-  Globe,
-  GitBranch,
   Calendar,
+  Layers,
+  ExternalLink,
+  Images,
 } from "lucide-react"
 import DeleteButton from "../components/DeleteButton"
 import PublishToggle from "../components/PublishToggle"
+
+function formatMonth(value: string | null): string {
+  if (!value) return ""
+  return new Date(value).toLocaleDateString("en-IE", { month: "short", year: "numeric" })
+}
 
 export default async function AdminProjectsPage() {
   const supabase = await createClient()
 
   const { data: projects, error } = await supabase
     .from("projects")
-    .select("id, title, slug, status, technologies, featured, published, pinned_order, start_date, end_date, created_at")
+    .select("*")
     .order("pinned_order", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: false })
 
   if (error) {
     console.error("Error fetching projects:", error.message)
   }
+
+  const publishedCount = (projects ?? []).filter((p) => p.published).length
 
   return (
     <div style={{ padding: "2rem" }}>
@@ -37,7 +45,7 @@ export default async function AdminProjectsPage() {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          marginBottom: "2rem",
+          marginBottom: "1.5rem",
           flexWrap: "wrap",
           gap: "1rem",
         }}
@@ -54,7 +62,7 @@ export default async function AdminProjectsPage() {
             Projects
           </h1>
           <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
-            {projects?.length ?? 0} total projects
+            {projects?.length ?? 0} total · {publishedCount} published
           </p>
         </div>
         <Link href="/admin/projects/new" className="btn-primary">
@@ -63,7 +71,6 @@ export default async function AdminProjectsPage() {
         </Link>
       </div>
 
-      {/* Projects table */}
       {!projects || projects.length === 0 ? (
         <div
           style={{
@@ -84,180 +91,66 @@ export default async function AdminProjectsPage() {
           </Link>
         </div>
       ) : (
-        <div
-          style={{
-            background: "var(--surface)",
-            border: "1px solid var(--border)",
-            borderRadius: "0.75rem",
-            overflow: "hidden",
-          }}
-        >
-          {/* Table header */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 120px 100px 120px 140px",
-              padding: "0.75rem 1.25rem",
-              background: "var(--bg-secondary)",
-              borderBottom: "1px solid var(--border)",
-              fontSize: "0.75rem",
-              fontWeight: 700,
-              color: "var(--text-muted)",
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-              gap: "1rem",
-            }}
-          >
-            <span>Project</span>
-            <span>Status</span>
-            <span>Featured</span>
-            <span>Published</span>
-            <span>Actions</span>
-          </div>
-
-          {/* Table rows */}
-          {projects.map((project, i) => (
-            <div
-              key={project.id}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 120px 100px 120px 140px",
-                padding: "1rem 1.25rem",
-                borderBottom:
-                  i < projects.length - 1
-                    ? "1px solid var(--border)"
-                    : "none",
-                alignItems: "center",
-                gap: "1rem",
-                transition: "background 0.15s ease",
-              }}
-            >
-              {/* Title and meta */}
-              <div style={{ minWidth: 0 }}>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.5rem",
-                    marginBottom: "0.25rem",
-                  }}
-                >
-                  {project.pinned_order && (
-                    <Star
-                      size={13}
-                      color="var(--accent)"
-                      fill="var(--accent)"
-                    />
+        <div className="admin-list">
+          {projects.map((project) => {
+            const period = [formatMonth(project.start_date), formatMonth(project.end_date)].filter(Boolean).join(" – ")
+            return (
+              <div key={project.id} className="admin-row">
+                {/* Image */}
+                <div className="admin-thumb">
+                  {project.image_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={project.image_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    <Layers size={18} />
                   )}
-                  <p
-                    style={{
-                      fontWeight: 600,
-                      color: "var(--text-primary)",
-                      fontSize: "0.9rem",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
+                </div>
+
+                {/* Title and details */}
+                <div style={{ minWidth: 0 }}>
+                  <Link href={`/admin/projects/${project.id}/edit`} className="admin-row-title" title={project.title}>
                     {project.title}
-                  </p>
+                  </Link>
+                  <p className="admin-row-sub">{project.excerpt || `/projects/${project.slug}`}</p>
+                  <div className="admin-row-meta">
+                    {project.pinned_order && (
+                      <span className="admin-chip accent"><Star size={10} fill="var(--accent)" /> Pinned #{project.pinned_order}</span>
+                    )}
+                    {project.featured && (
+                      <span className="admin-chip accent"><Star size={10} /> Featured</span>
+                    )}
+                    {project.status && (
+                      <span className={`admin-chip${project.status === "In Progress" ? " warn" : ""}`}>{project.status}</span>
+                    )}
+                    {period && (
+                      <span className="admin-chip"><Calendar size={10} /> {period}</span>
+                    )}
+                    {project.gallery?.length > 0 && (
+                      <span className="admin-chip"><Images size={10} /> {project.gallery.length}</span>
+                    )}
+                    {project.technologies?.slice(0, 3).map((t: string) => (
+                      <span key={t} className="admin-chip">{t}</span>
+                    ))}
+                  </div>
                 </div>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "0.75rem",
-                    flexWrap: "wrap",
-                  }}
-                >
-                  {project.technologies?.slice(0, 3).map((t: string) => (
-                    <span
-                      key={t}
-                      style={{
-                        fontSize: "0.72rem",
-                        color: "var(--text-muted)",
-                        background: "var(--bg-secondary)",
-                        padding: "0.1rem 0.4rem",
-                        borderRadius: "0.2rem",
-                      }}
-                    >
-                      {t}
-                    </span>
-                  ))}
+
+                {/* Actions */}
+                <div className="admin-row-side">
+                  <PublishToggle id={project.id} table="projects" published={project.published} />
+                  {project.published && (
+                    <a href={`/projects/${project.slug}`} target="_blank" rel="noopener noreferrer" className="admin-action" title="View on site">
+                      <ExternalLink size={12} />
+                    </a>
+                  )}
+                  <Link href={`/admin/projects/${project.id}/edit`} className="admin-action">
+                    <Pencil size={12} />
+                    Edit
+                  </Link>
+                  <DeleteButton id={project.id} table="projects" label="project" />
                 </div>
               </div>
-
-              {/* Status */}
-              <div>
-                <span
-                  style={{
-                    fontSize: "0.75rem",
-                    fontWeight: 600,
-                    padding: "0.25rem 0.6rem",
-                    borderRadius: "999px",
-                    background:
-                      project.status === "Completed"
-                        ? "var(--accent-subtle)"
-                        : "var(--bg-secondary)",
-                    color:
-                      project.status === "Completed"
-                        ? "var(--accent)"
-                        : "var(--text-muted)",
-                  }}
-                >
-                  {project.status ?? "—"}
-                </span>
-              </div>
-
-              {/* Featured */}
-              <div>
-                <span
-                  style={{
-                    fontSize: "0.8rem",
-                    color: project.featured
-                      ? "var(--accent)"
-                      : "var(--text-muted)",
-                  }}
-                >
-                  {project.featured ? "Yes" : "No"}
-                </span>
-              </div>
-
-              {/* Published toggle */}
-              <PublishToggle
-                id={project.id}
-                table="projects"
-                published={project.published}
-              />
-
-              {/* Actions */}
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <Link
-                  href={`/admin/projects/${project.id}/edit`}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "0.3rem",
-                    padding: "0.4rem 0.75rem",
-                    borderRadius: "0.375rem",
-                    border: "1px solid var(--border)",
-                    background: "var(--surface)",
-                    color: "var(--text-secondary)",
-                    fontSize: "0.8rem",
-                    textDecoration: "none",
-                    transition: "all 0.15s ease",
-                  }}
-                >
-                  <Pencil size={12} />
-                  Edit
-                </Link>
-                <DeleteButton
-                  id={project.id}
-                  table="projects"
-                  label="project"
-                />
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

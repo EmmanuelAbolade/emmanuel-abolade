@@ -143,7 +143,7 @@ export default function TestimonialForm({ initial }: { initial?: Partial<Testimo
         style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
       >
         {/* Name, Role, Company */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
           <div>
             <label style={labelStyle}>
               Name <span style={{ color: "#ef4444" }}>*</span>

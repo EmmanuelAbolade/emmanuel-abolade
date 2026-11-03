@@ -8,9 +8,9 @@ import { useState, useMemo, useRef, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
+import { splitMatches } from "@/lib/text"
 import {
   ExternalLink,
-  GitBranch,
   ArrowRight,
   Search,
   Star,
@@ -188,12 +188,13 @@ function SearchBox({
                 onMouseLeave={(e) => { e.currentTarget.style.background = "none" }}
               >
                 <Search size={12} color="var(--text-muted)" />
-                <span dangerouslySetInnerHTML={{
-                  __html: s.replace(
-                    new RegExp(`(${value})`, "gi"),
-                    `<strong style="color:var(--accent)">$1</strong>`
-                  ),
-                }} />
+                <span>
+                  {splitMatches(s, value).map((part, idx) =>
+                    part.match
+                      ? <strong key={idx} style={{ color: "var(--accent)" }}>{part.text}</strong>
+                      : <span key={idx}>{part.text}</span>
+                  )}
+                </span>
               </button>
             ))}
           </motion.div>

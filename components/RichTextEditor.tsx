@@ -1,14 +1,18 @@
 // components/RichTextEditor.tsx
-// TipTap rich text editor component for blog post content
-// Supports: headings, bold, italic, lists, code blocks, blockquotes, links
+// TipTap rich text editor component for blog posts, project descriptions and bios
+// Supports: headings, bold, italic, underline, strike, lists, code blocks, blockquotes, links, images
+// The toolbar stays pinned to the top of the screen while scrolling through long content
 
 "use client"
 
+import { useRef, useState } from "react"
 import { useEditor, EditorContent } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Placeholder from "@tiptap/extension-placeholder"
 import CharacterCount from "@tiptap/extension-character-count"
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight"
+import Image from "@tiptap/extension-image"
+import { uploadImage, IMAGE_TYPES } from "@/lib/upload"
 import { createLowlight } from "lowlight"
 import javascript from "highlight.js/lib/languages/javascript"
 import typescript from "highlight.js/lib/languages/typescript"
@@ -19,6 +23,11 @@ import bash from "highlight.js/lib/languages/bash"
 import {
   Bold,
   Italic,
+  Underline,
+  Strikethrough,
+  Link2,
+  ImagePlus,
+  Loader,
   Heading2,
   Heading3,
   List,
@@ -101,14 +110,32 @@ type Props = {
   content: string
   onChange: (html: string) => void
   placeholder?: string
+  folder?: string
+  minHeight?: number
+  showStats?: boolean
 }
 
-export default function RichTextEditor({ content, onChange, placeholder }: Props) {
+export default function RichTextEditor({
+  content,
+  onChange,
+  placeholder,
+  folder = "posts",
+  minHeight = 400,
+  showStats = true,
+}: Props) {
+  const fileRef                   = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState("")
+
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
       StarterKit.configure({
         codeBlock: false,
+        link: { openOnClick: false, autolink: true },
+      }),
+      Image.configure({
+        HTMLAttributes: { loading: "lazy" },
       }),
       Placeholder.configure({
         placeholder: placeholder ?? "Start writing your post...",
@@ -126,7 +153,7 @@ export default function RichTextEditor({ content, onChange, placeholder }: Props
     editorProps: {
       attributes: {
         style: [
-          "min-height: 400px",
+          `min-height: ${minHeight}px`,
           "padding: 1.25rem",
           "outline: none",
           "color: var(--text-primary)",
@@ -146,16 +173,44 @@ export default function RichTextEditor({ content, onChange, placeholder }: Props
   // Estimate reading time (avg 200 words per minute)
   const readingTime = Math.max(1, Math.ceil(wordCount / 200))
 
+  function setLink() {
+    if (!editor) return
+    const previous = editor.getAttributes("link").href as string | undefined
+    const url = window.prompt("Link URL (leave empty to remove)", previous ?? "https://")
+    if (url === null) return
+    if (url.trim() === "" || url.trim() === "https://") {
+      editor.chain().focus().extendMarkRange("link").unsetLink().run()
+      return
+    }
+    editor.chain().focus().extendMarkRange("link").setLink({ href: url.trim() }).run()
+  }
+
+  async function handleImageFiles(files: FileList | null) {
+    if (!editor || !files?.length) return
+    setUploadError("")
+    setUploading(true)
+    for (const file of Array.from(files)) {
+      const result = await uploadImage(file, folder)
+      if ("error" in result) {
+        setUploadError(result.error)
+        break
+      }
+      editor.chain().focus().setImage({ src: result.url, alt: file.name.replace(/\.[^.]+$/, "") }).run()
+    }
+    setUploading(false)
+    if (fileRef.current) fileRef.current.value = ""
+  }
+
   return (
     <div style={{
       border: "1.5px solid var(--border)",
       borderRadius: "0.5rem",
       background: "var(--surface)",
-      overflow: "hidden",
+      overflow: "clip",
       transition: "border-color 0.2s ease",
     }}>
-      {/* Toolbar */}
-      <div style={{
+      {/* Toolbar — sticky so it stays reachable while scrolling long content */}
+      <div className="rte-toolbar" style={{
         display: "flex",
         flexWrap: "wrap",
         alignItems: "center",
@@ -163,6 +218,10 @@ export default function RichTextEditor({ content, onChange, placeholder }: Props
         padding: "0.5rem 0.75rem",
         borderBottom: "1px solid var(--border)",
         background: "var(--bg-secondary)",
+        position: "sticky",
+        top: "var(--admin-sticky-top, 0px)",
+        zIndex: 20,
+        boxShadow: "0 4px 12px -8px rgba(0,0,0,0.25)",
       }}>
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
@@ -177,6 +236,27 @@ export default function RichTextEditor({ content, onChange, placeholder }: Props
           title="Italic"
         >
           <Italic size={14} />
+        </ToolbarButton>
+        <ToolbarButton
+          onClick={() => editor.chain().focus().toggleUnderline().run()}
+          active={editor.isActive("underline")}
+          title="Underline"
+        >
+          <Underline size={14} />
+        </ToolbarButton>
+        <ToolbarButton
+          onClick={() => editor.chain().focus().toggleStrike().run()}
+          active={editor.isActive("strike")}
+          title="Strikethrough"
+        >
+          <Strikethrough size={14} />
+        </ToolbarButton>
+        <ToolbarButton
+          onClick={setLink}
+          active={editor.isActive("link")}
+          title="Add or edit link"
+        >
+          <Link2 size={14} />
         </ToolbarButton>
 
         <Divider />
@@ -245,6 +325,23 @@ export default function RichTextEditor({ content, onChange, placeholder }: Props
         >
           <Minus size={14} />
         </ToolbarButton>
+        <ToolbarButton
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading}
+          title="Insert image(s)"
+        >
+          {uploading
+            ? <Loader size={14} style={{ animation: "spin 1s linear infinite" }} />
+            : <ImagePlus size={14} />}
+        </ToolbarButton>
+        <input
+          ref={fileRef}
+          type="file"
+          accept={IMAGE_TYPES.join(",")}
+          multiple
+          onChange={(e) => handleImageFiles(e.target.files)}
+          style={{ display: "none" }}
+        />
 
         <Divider />
 
@@ -262,13 +359,18 @@ export default function RichTextEditor({ content, onChange, placeholder }: Props
         >
           <Redo size={14} />
         </ToolbarButton>
+        {uploadError && (
+          <span style={{ fontSize: "0.75rem", color: "#ef4444", marginLeft: "0.5rem" }}>
+            {uploadError}
+          </span>
+        )}
       </div>
 
       {/* Editor area */}
       <EditorContent editor={editor} />
 
       {/* Footer stats */}
-      <div style={{
+      {showStats && <div style={{
         display: "flex",
         gap: "1.5rem",
         padding: "0.5rem 1.25rem",
@@ -280,7 +382,7 @@ export default function RichTextEditor({ content, onChange, placeholder }: Props
         <span>{wordCount} words</span>
         <span>{charCount} characters</span>
         <span>{readingTime} min read</span>
-      </div>
+      </div>}
 
       {/* Editor styles */}
       <style>{`
@@ -297,6 +399,9 @@ export default function RichTextEditor({ content, onChange, placeholder }: Props
         .tiptap p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; color: var(--text-muted); pointer-events: none; height: 0; }
         .tiptap a { color: var(--accent); text-decoration: underline; }
         .tiptap strong { font-weight: 700; color: var(--text-primary); }
+        .tiptap img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 1rem 0; border: 1px solid var(--border); }
+        .tiptap img.ProseMirror-selectednode { outline: 3px solid var(--accent); }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       `}</style>
     </div>
   )

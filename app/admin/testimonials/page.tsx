@@ -1,5 +1,6 @@
 // app/admin/testimonials/page.tsx
 // Admin Testimonials page - manage testimonials and recommendations
+// Rows stack into cards on mobile so names stay readable
 
 import { createClient } from "@/lib/supabase/server"
 import Link from "next/link"
@@ -26,7 +27,7 @@ export default async function AdminTestimonialsPage() {
       <div style={{
         display: "flex", alignItems: "center",
         justifyContent: "space-between",
-        marginBottom: "2rem", flexWrap: "wrap", gap: "1rem",
+        marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem",
       }}>
         <div>
           <h1 style={{
@@ -45,7 +46,6 @@ export default async function AdminTestimonialsPage() {
         </Link>
       </div>
 
-      {/* List */}
       {!testimonials || testimonials.length === 0 ? (
         <div style={{
           background: "var(--surface)", border: "1px solid var(--border)",
@@ -61,92 +61,53 @@ export default async function AdminTestimonialsPage() {
           </Link>
         </div>
       ) : (
-        <div style={{
-          background: "var(--surface)", border: "1px solid var(--border)",
-          borderRadius: "0.75rem", overflow: "hidden",
-        }}>
-          {/* Table header */}
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 160px 80px 120px 140px",
-            padding: "0.75rem 1.25rem",
-            background: "var(--bg-secondary)",
-            borderBottom: "1px solid var(--border)",
-            fontSize: "0.75rem", fontWeight: 700,
-            color: "var(--text-muted)",
-            textTransform: "uppercase", letterSpacing: "0.06em", gap: "1rem",
-          }}>
-            <span>Person</span>
-            <span>Project</span>
-            <span>Rating</span>
-            <span>Published</span>
-            <span>Actions</span>
-          </div>
+        <div className="admin-list">
+          {testimonials.map((t) => (
+            <div key={t.id} className="admin-row">
+              {/* Avatar */}
+              <div className="admin-thumb" style={{ borderRadius: "50%", width: "54px", height: "54px" }}>
+                {t.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={t.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                ) : (
+                  <span style={{ fontFamily: "DM Serif Display, serif", fontSize: "1.2rem" }}>
+                    {t.name?.charAt(0)?.toUpperCase()}
+                  </span>
+                )}
+              </div>
 
-          {testimonials.map((t, i) => (
-            <div
-              key={t.id}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 160px 80px 120px 140px",
-                padding: "1rem 1.25rem",
-                borderBottom: i < testimonials.length - 1 ? "1px solid var(--border)" : "none",
-                alignItems: "center", gap: "1rem",
-              }}
-            >
-              {/* Name and role */}
+              {/* Name and quote */}
               <div style={{ minWidth: 0 }}>
-                <p style={{
-                  fontWeight: 600, color: "var(--text-primary)",
-                  fontSize: "0.9rem", marginBottom: "0.15rem",
-                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                }}>
+                <Link href={`/admin/testimonials/${t.id}/edit`} className="admin-row-title">
                   {t.name}
+                </Link>
+                <p className="admin-row-sub">
+                  {[t.role, t.company].filter(Boolean).join(" at ") || "—"}
                 </p>
-                <p style={{
-                  fontSize: "0.78rem", color: "var(--text-muted)",
-                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                }}>
-                  {[t.role, t.company].filter(Boolean).join(" at ")}
-                </p>
+                <div className="admin-row-meta">
+                  <span className="admin-chip" style={{ gap: "1px" }}>
+                    {Array.from({ length: 5 }).map((_, idx) => (
+                      <Star
+                        key={idx}
+                        size={10}
+                        color={idx < (t.rating ?? 5) ? "#f59e0b" : "var(--border)"}
+                        fill={idx < (t.rating ?? 5) ? "#f59e0b" : "none"}
+                      />
+                    ))}
+                  </span>
+                  {t.project && <span className="admin-chip">{t.project}</span>}
+                  {t.content && (
+                    <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontStyle: "italic", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0, flex: "1 1 160px" }}>
+                      “{t.content}”
+                    </span>
+                  )}
+                </div>
               </div>
-
-              {/* Project */}
-              <span style={{ fontSize: "0.82rem", color: "var(--text-secondary)" }}>
-                {t.project ?? "—"}
-              </span>
-
-              {/* Rating */}
-              <div style={{ display: "flex", gap: "1px" }}>
-                {Array.from({ length: 5 }).map((_, idx) => (
-                  <Star
-                    key={idx}
-                    size={12}
-                    color={idx < (t.rating ?? 5) ? "#f59e0b" : "var(--border)"}
-                    fill={idx < (t.rating ?? 5) ? "#f59e0b" : "none"}
-                  />
-                ))}
-              </div>
-
-              {/* Publish toggle */}
-              <PublishToggle
-                id={t.id}
-                table="testimonials"
-                published={t.published}
-              />
 
               {/* Actions */}
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <Link
-                  href={`/admin/testimonials/${t.id}/edit`}
-                  style={{
-                    display: "inline-flex", alignItems: "center", gap: "0.3rem",
-                    padding: "0.4rem 0.75rem", borderRadius: "0.375rem",
-                    border: "1px solid var(--border)", background: "var(--surface)",
-                    color: "var(--text-secondary)", fontSize: "0.8rem",
-                    textDecoration: "none",
-                  }}
-                >
+              <div className="admin-row-side">
+                <PublishToggle id={t.id} table="testimonials" published={t.published} />
+                <Link href={`/admin/testimonials/${t.id}/edit`} className="admin-action">
                   <Pencil size={12} />
                   Edit
                 </Link>

@@ -4,8 +4,6 @@
 
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
-import Image from "next/image"
-import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import ProjectDetail from "./ProjectDetail"
 import { generateProjectMetadata } from "@/lib/seo"

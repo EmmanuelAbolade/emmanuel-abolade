@@ -6,10 +6,28 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import dynamic from "next/dynamic"
 import { createClient } from "@/lib/supabase/client"
 import { Save, Loader, AlertCircle, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import ImageUpload from "@/components/ImageUpload"
+import GalleryUpload from "@/components/GalleryUpload"
+import { plainToHtml } from "@/lib/rich-text"
+
+// Dynamically import the editor to avoid SSR issues
+const RichTextEditor = dynamic(() => import("@/components/RichTextEditor"), {
+  ssr: false,
+  loading: () => (
+    <div style={{
+      border: "1.5px solid var(--border)", borderRadius: "0.5rem",
+      background: "var(--surface)", height: "260px",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      color: "var(--text-muted)", fontSize: "0.875rem",
+    }}>
+      Loading editor...
+    </div>
+  ),
+})
 
 type Project = {
   id?: string
@@ -26,6 +44,7 @@ type Project = {
   showcase_url: string
   live_url: string
   image_url: string
+  gallery: string[]
   key_achievements: string[]
   learnings: string
   start_date: string
@@ -42,7 +61,7 @@ const empty: Project = {
   title: "", slug: "", excerpt: "", description: "",
   technologies: [], my_role: "", client: "", status: "Completed",
   difficulty_level: "Intermediate", repository_url: "", showcase_url: "",
-  live_url: "", image_url: "", key_achievements: [], learnings: "",
+  live_url: "", image_url: "", gallery: [], key_achievements: [], learnings: "",
   start_date: "", end_date: "", featured: false, published: false,
   pinned_order: "",
 }
@@ -91,7 +110,14 @@ export default function ProjectForm({
   const router = useRouter()
   const isEdit = !!initial?.id
 
-  const [form, setForm]     = useState<Project>({ ...empty, ...initial, technologies: initial?.technologies ?? [], key_achievements: initial?.key_achievements ?? [] })
+  const [form, setForm]     = useState<Project>({
+    ...empty,
+    ...initial,
+    description:      plainToHtml(initial?.description),
+    technologies:     initial?.technologies ?? [],
+    key_achievements: initial?.key_achievements ?? [],
+    gallery:          initial?.gallery ?? [],
+  })
   const [techInput, setTechInput]   = useState("")
   const [achInput, setAchInput]     = useState("")
   const [saving, setSaving]         = useState(false)
@@ -138,11 +164,13 @@ export default function ProjectForm({
     setSaving(true)
     const supabase = createClient()
 
-    const payload = {
+    const description = form.description.replace(/<p><\/p>/g, "").trim()
+
+    const payload: Record<string, unknown> = {
       title:            form.title.trim(),
       slug:             form.slug.trim(),
       excerpt:          form.excerpt.trim() || null,
-      description:      form.description.trim() || null,
+      description:      description || null,
       technologies:     form.technologies,
       my_role:          form.my_role.trim() || null,
       client:           form.client.trim() || null,
@@ -159,6 +187,11 @@ export default function ProjectForm({
       featured:         form.featured,
       published:        form.published,
       pinned_order:     form.pinned_order ? parseInt(form.pinned_order) : null,
+    }
+
+    // Only send gallery once the column exists (loaded from DB) or images were added
+    if (initial?.gallery !== undefined || form.gallery.length > 0) {
+      payload.gallery = form.gallery
     }
 
     let dbError
@@ -240,7 +273,7 @@ export default function ProjectForm({
       >
         {/* Title and Slug */}
         <div
-          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}
+          style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1rem" }}
         >
           <div>
             <label style={labelStyle}>
@@ -287,11 +320,12 @@ export default function ProjectForm({
         {/* Description */}
         <div>
           <label style={labelStyle}>Full Description</label>
-          <textarea
-            value={form.description}
-            onChange={(e) => set("description", e.target.value)}
-            style={{ ...inputStyle, minHeight: "160px", resize: "vertical" }}
-            placeholder="Full project description — supports plain text"
+          <RichTextEditor
+            content={form.description}
+            onChange={(html) => set("description", html)}
+            placeholder="Describe the project — problem, approach, results..."
+            folder="projects"
+            minHeight={260}
           />
         </div>
 
@@ -333,7 +367,7 @@ export default function ProjectForm({
 
         {/* Role, Client, Status, Difficulty */}
         <div
-          style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "1rem" }}
+          style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: "1rem" }}
         >
           <div>
             <label style={labelStyle}>My Role</label>
@@ -383,7 +417,7 @@ export default function ProjectForm({
 
         {/* URLs */}
         <div
-          style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem" }}
+          style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem" }}
         >
           <div>
             <label style={labelStyle}>Repository URL</label>
@@ -425,6 +459,14 @@ export default function ProjectForm({
             folder="projects"
             aspectRatio="16/9"
           />
+
+        {/* Gallery */}
+        <GalleryUpload
+          label="Project Gallery"
+          value={form.gallery}
+          onChange={(urls) => set("gallery", urls)}
+          folder="projects"
+        />
 
         {/* Key Achievements */}
         <div>
@@ -486,7 +528,7 @@ export default function ProjectForm({
 
         {/* Dates */}
         <div
-          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}
+          style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}
         >
           <div>
             <label style={labelStyle}>Start Date</label>

@@ -1,18 +1,24 @@
 // app/admin/posts/page.tsx
-// Admin Posts listing page - shows all posts with status, publish toggle and actions
+// Admin Posts listing page - shows all posts with cover, status, publish toggle and actions
+// Rows stack into cards on mobile so titles stay readable
 
 import { createClient } from "@/lib/supabase/server"
 import Link from "next/link"
-import { Plus, Pencil, Star, Clock } from "lucide-react"
+import { Plus, Pencil, Star, Clock, Calendar, FileText, ExternalLink, Images } from "lucide-react"
 import DeleteButton from "../components/DeleteButton"
 import PostStatusToggle from "./PostStatusToggle"
+
+function formatDate(value: string | null): string {
+  if (!value) return ""
+  return new Date(value).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" })
+}
 
 export default async function AdminPostsPage() {
   const supabase = await createClient()
 
   const { data: posts, error } = await supabase
     .from("posts")
-    .select("id, title, slug, status, featured, reading_time, pinned_order, tags, published_at, created_at")
+    .select("*")
     .order("pinned_order", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: false })
 
@@ -20,12 +26,10 @@ export default async function AdminPostsPage() {
     console.error("Error fetching posts:", error.message)
   }
 
-  const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-    draft:     { bg: "var(--bg-secondary)", color: "var(--text-muted)" },
-    review:    { bg: "#fef9c3",             color: "#ca8a04"           },
-    published: { bg: "var(--accent-subtle)", color: "var(--accent)"   },
-    archived:  { bg: "var(--bg-secondary)", color: "var(--text-muted)" },
-  }
+  const counts = (posts ?? []).reduce<Record<string, number>>((acc, p) => {
+    acc[p.status] = (acc[p.status] ?? 0) + 1
+    return acc
+  }, {})
 
   return (
     <div style={{ padding: "2rem" }}>
@@ -35,7 +39,7 @@ export default async function AdminPostsPage() {
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        marginBottom: "2rem",
+        marginBottom: "1.5rem",
         flexWrap: "wrap",
         gap: "1rem",
       }}>
@@ -49,7 +53,8 @@ export default async function AdminPostsPage() {
             Posts
           </h1>
           <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
-            {posts?.length ?? 0} total posts
+            {posts?.length ?? 0} total
+            {Object.entries(counts).map(([status, n]) => ` · ${n} ${status}`)}
           </p>
         </div>
         <Link href="/admin/posts/new" className="btn-primary">
@@ -58,7 +63,6 @@ export default async function AdminPostsPage() {
         </Link>
       </div>
 
-      {/* Posts table */}
       {!posts || posts.length === 0 ? (
         <div style={{
           background: "var(--surface)",
@@ -77,127 +81,62 @@ export default async function AdminPostsPage() {
           </Link>
         </div>
       ) : (
-        <div style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          borderRadius: "0.75rem",
-          overflow: "hidden",
-        }}>
-          {/* Table header */}
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 110px 100px 120px 140px",
-            padding: "0.75rem 1.25rem",
-            background: "var(--bg-secondary)",
-            borderBottom: "1px solid var(--border)",
-            fontSize: "0.75rem",
-            fontWeight: 700,
-            color: "var(--text-muted)",
-            textTransform: "uppercase",
-            letterSpacing: "0.06em",
-            gap: "1rem",
-          }}>
-            <span>Post</span>
-            <span>Status</span>
-            <span>Featured</span>
-            <span>Published</span>
-            <span>Actions</span>
-          </div>
-
-          {/* Table rows */}
-          {posts.map((post, i) => {
-            const statusStyle = STATUS_COLORS[post.status] ?? STATUS_COLORS.draft
+        <div className="admin-list">
+          {posts.map((post) => {
+            const date = post.status === "published" ? post.published_at : post.updated_at ?? post.created_at
             return (
-              <div
-                key={post.id}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 110px 100px 120px 140px",
-                  padding: "1rem 1.25rem",
-                  borderBottom: i < posts.length - 1 ? "1px solid var(--border)" : "none",
-                  alignItems: "center",
-                  gap: "1rem",
-                }}
-              >
-                {/* Title and meta */}
+              <div key={post.id} className="admin-row">
+                {/* Cover */}
+                <div className="admin-thumb">
+                  {post.cover_image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={post.cover_image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    <FileText size={18} />
+                  )}
+                </div>
+
+                {/* Title and details */}
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
+                  <Link href={`/admin/posts/${post.id}/edit`} className="admin-row-title" title={post.title}>
+                    {post.title}
+                  </Link>
+                  <p className="admin-row-sub">/blog/{post.slug}</p>
+                  <div className="admin-row-meta">
                     {post.pinned_order && (
-                      <Star size={13} color="var(--accent)" fill="var(--accent)" />
+                      <span className="admin-chip accent"><Star size={10} fill="var(--accent)" /> Pinned #{post.pinned_order}</span>
                     )}
-                    <p style={{
-                      fontWeight: 600,
-                      color: "var(--text-primary)",
-                      fontSize: "0.9rem",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}>
-                      {post.title}
-                    </p>
-                  </div>
-                  <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+                    {post.featured && (
+                      <span className="admin-chip accent"><Star size={10} /> Featured</span>
+                    )}
+                    {date && (
+                      <span className="admin-chip">
+                        <Calendar size={10} />
+                        {post.status === "published" ? "Published " : "Updated "}
+                        {formatDate(date)}
+                      </span>
+                    )}
                     {post.reading_time && (
-                      <span style={{
-                        display: "flex", alignItems: "center", gap: "0.25rem",
-                        fontSize: "0.72rem", color: "var(--text-muted)",
-                      }}>
-                        <Clock size={10} />
-                        {post.reading_time} min
-                      </span>
+                      <span className="admin-chip"><Clock size={10} /> {post.reading_time} min</span>
                     )}
-                    {post.tags?.slice(0, 2).map((t: string) => (
-                      <span key={t} style={{
-                        fontSize: "0.72rem",
-                        color: "var(--text-muted)",
-                        background: "var(--bg-secondary)",
-                        padding: "0.1rem 0.4rem",
-                        borderRadius: "0.2rem",
-                      }}>
-                        {t}
-                      </span>
+                    {post.gallery?.length > 0 && (
+                      <span className="admin-chip"><Images size={10} /> {post.gallery.length}</span>
+                    )}
+                    {post.tags?.slice(0, 3).map((t: string) => (
+                      <span key={t} className="admin-chip">{t}</span>
                     ))}
                   </div>
                 </div>
 
-                {/* Status badge */}
-                <span style={{
-                  fontSize: "0.72rem",
-                  fontWeight: 700,
-                  padding: "0.25rem 0.6rem",
-                  borderRadius: "999px",
-                  background: statusStyle.bg,
-                  color: statusStyle.color,
-                  textTransform: "capitalize",
-                  display: "inline-flex",
-                  alignSelf: "center",
-                }}>
-                  {post.status}
-                </span>
-
-                {/* Featured */}
-                <span style={{
-                  fontSize: "0.8rem",
-                  color: post.featured ? "var(--accent)" : "var(--text-muted)",
-                }}>
-                  {post.featured ? "Yes" : "No"}
-                </span>
-
-                {/* Status toggle */}
-                <PostStatusToggle id={post.id} status={post.status} />
-
                 {/* Actions */}
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <Link
-                    href={`/admin/posts/${post.id}/edit`}
-                    style={{
-                      display: "inline-flex", alignItems: "center", gap: "0.3rem",
-                      padding: "0.4rem 0.75rem", borderRadius: "0.375rem",
-                      border: "1px solid var(--border)", background: "var(--surface)",
-                      color: "var(--text-secondary)", fontSize: "0.8rem",
-                      textDecoration: "none", transition: "all 0.15s ease",
-                    }}
-                  >
+                <div className="admin-row-side">
+                  <PostStatusToggle id={post.id} status={post.status} />
+                  {post.status === "published" && (
+                    <a href={`/blog/${post.slug}`} target="_blank" rel="noopener noreferrer" className="admin-action" title="View on site">
+                      <ExternalLink size={12} />
+                    </a>
+                  )}
+                  <Link href={`/admin/posts/${post.id}/edit`} className="admin-action">
                     <Pencil size={12} />
                     Edit
                   </Link>

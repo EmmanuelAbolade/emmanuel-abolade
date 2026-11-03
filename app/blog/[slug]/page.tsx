@@ -1,8 +1,9 @@
 // app/blog/[slug]/page.tsx
 // Individual blog post page
-// Features: reading progress bar, table of contents, improved typography, author card, related posts
+// Features: reading progress bar, table of contents, improved typography, gallery, author card, related posts
 
 import GiscusComments from "@/components/GiscusComments"
+import ImageGallery from "@/components/ImageGallery"
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Image from "next/image"
@@ -123,6 +124,7 @@ export default async function BlogPostPage({ params }: Props) {
           </div>
 
           <div className="prose-content" style={{ color: "var(--text-secondary)", lineHeight: 1.9, fontSize: isMinimal ? "1rem" : "1.075rem" }} dangerouslySetInnerHTML={{ __html: post.content ?? "" }} />
+          {post.gallery?.length > 0 && <ImageGallery images={post.gallery} title={post.title} />}
 
           <div style={{ marginTop: "3rem", padding: "1.5rem", background: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "0.75rem", display: "flex", gap: "1.25rem", alignItems: "center" }}>
             <div style={{ width: "4rem", height: "4rem", minWidth: "4rem", borderRadius: "50%", overflow: "hidden", border: "3px solid var(--surface)", position: "relative" }}>
@@ -182,27 +184,6 @@ export default async function BlogPostPage({ params }: Props) {
           .post-layout { grid-template-columns: 1fr !important; gap: 0 !important; }
           .toc-sidebar { display: none !important; }
         }
-        .prose-content h1,.prose-content h2,.prose-content h3,.prose-content h4 {
-          font-family: "DM Serif Display", serif; color: var(--text-primary);
-          margin-top: 2.5rem; margin-bottom: 0.85rem; line-height: 1.2; scroll-margin-top: 5rem;
-        }
-        .prose-content h2 { font-size: 1.75rem; }
-        .prose-content h3 { font-size: 1.35rem; }
-        .prose-content h4 { font-size: 1.1rem; }
-        .prose-content p  { margin-bottom: 1.4rem; }
-        .prose-content ul,.prose-content ol { padding-left: 1.5rem; margin-bottom: 1.4rem; }
-        .prose-content li { margin-bottom: 0.5rem; line-height: 1.75; }
-        .prose-content a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
-        .prose-content blockquote { border-left: 3px solid var(--accent); padding: 0.75rem 1.25rem; margin: 2rem 0; background: var(--accent-subtle); border-radius: 0 0.5rem 0.5rem 0; color: var(--text-secondary); font-style: italic; }
-        .prose-content code { background: var(--bg-secondary); border: 1px solid var(--border); padding: 0.15rem 0.4rem; border-radius: 0.25rem; font-size: 0.875em; color: var(--accent); }
-        .prose-content pre { background: var(--bg-secondary); border: 1px solid var(--border); padding: 1.5rem; border-radius: 0.625rem; overflow-x: auto; margin: 1.5rem 0 2rem; }
-        .prose-content pre code { background: none; border: none; padding: 0; color: var(--text-primary); font-size: 0.9rem; }
-        .prose-content img { width: 100%; border-radius: 0.625rem; margin: 2rem 0; border: 1px solid var(--border); }
-        .prose-content hr { border: none; border-top: 1px solid var(--border); margin: 3rem 0; }
-        .prose-content table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 0.9rem; }
-        .prose-content th,.prose-content td { border: 1px solid var(--border); padding: 0.65rem 1rem; text-align: left; }
-        .prose-content th { background: var(--bg-secondary); font-weight: 600; color: var(--text-primary); }
-        .prose-content strong { color: var(--text-primary); font-weight: 700; }
       `}</style>
     </div>
   )

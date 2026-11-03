@@ -9,9 +9,10 @@ import { useAutoSave, getAutoSave, clearAutoSave } from "@/lib/hooks/useAutoSave
 import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
 import { createClient } from "@/lib/supabase/client"
-import { Save, Loader, AlertCircle, ArrowLeft, Eye } from "lucide-react"
+import { Save, Loader, AlertCircle, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import ImageUpload from "@/components/ImageUpload"
+import GalleryUpload from "@/components/GalleryUpload"
 
 // Dynamically import the editor to avoid SSR issues
 const RichTextEditor = dynamic(() => import("@/components/RichTextEditor"), {
@@ -40,6 +41,7 @@ type Post = {
   excerpt: string
   content: string
   cover_image: string
+  gallery: string[]
   hide_cover_image: boolean
   meta_description: string
   canonical_url: string
@@ -51,13 +53,14 @@ type Post = {
   layout_style: string
   reading_time: string
   pinned_order: string
+  published_at?: string | null
 }
 
 const STATUSES      = ["draft", "review", "published", "archived"]
 const LAYOUT_STYLES = ["standard", "minimal", "case_study", "hero_image"]
 
 const empty: Post = {
-  title: "", slug: "", excerpt: "", content: "", cover_image: "",
+  title: "", slug: "", excerpt: "", content: "", cover_image: "", gallery: [],
   hide_cover_image: false, meta_description: "", canonical_url: "",
   tags: [], status: "draft", featured: false, allow_comments: true,
   show_table_of_contents: false, layout_style: "standard",
@@ -92,37 +95,45 @@ export default function PostForm({ initial }: { initial?: Partial<Post> }) {
   const isEdit = !!initial?.id
   const autoSaveKey = isEdit ? `post-edit-${initial?.id}` : "post-new"
 
-  const [form, setForm]         = useState<Post>({ ...empty, ...initial, tags: initial?.tags ?? [] })
+  const [form, setForm]         = useState<Post>({ ...empty, ...initial, tags: initial?.tags ?? [], gallery: initial?.gallery ?? [] })
   const [tagInput, setTagInput] = useState("")
   const [saving, setSaving]     = useState(false)
   const [error, setError]       = useState("")
   const [restored, setRestored]   = useState(false)
   const [lastSaved, setLastSaved] = useState<string | null>(null)
+  // Bumped on restore so the editor remounts with the restored content
+  const [editorKey, setEditorKey] = useState(0)
 
-  // Auto-save every 30 seconds
-  useAutoSave(autoSaveKey, form as Record<string, unknown>, !isEdit || true)
+  // Auto-save 2s after changes — paused while the restore prompt is showing
+  // so the untouched form can't overwrite the draft being offered
+  const autoSave = useAutoSave(autoSaveKey, form as Record<string, unknown>, !restored)
 
-  // Check for saved draft on mount
+  // Check for a saved draft on mount (localStorage is only available in the browser)
   useEffect(() => {
-    if (isEdit) return // Do not restore on edit pages
     const saved = getAutoSave(autoSaveKey)
-    if (saved) {
-      const ago = Math.round((Date.now() - new Date(saved.savedAt).getTime()) / 60000)
-      setLastSaved(`${ago} minute${ago !== 1 ? "s" : ""} ago`)
-      setRestored(true)
-    }
-  }, [])
+    if (!saved?.data) return
+    const draft = saved.data as Partial<Post>
+    const differs =
+      (["title", "excerpt", "content"] as const).some((k) => (draft[k] ?? "") !== (form[k] ?? "")) ||
+      JSON.stringify(draft.tags ?? []) !== JSON.stringify(form.tags)
+    if (!differs) { clearAutoSave(autoSaveKey); return }
+    const ago = Math.round((Date.now() - new Date(saved.savedAt).getTime()) / 60000)
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of browser storage
+    setLastSaved(ago < 1 ? "less than a minute ago" : `${ago} minute${ago !== 1 ? "s" : ""} ago`)
+    setRestored(true)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   function restoreDraft() {
     const saved = getAutoSave(autoSaveKey)
     if (saved?.data) {
-      setForm(saved.data as typeof form)
-      setRestored(false)
+      setForm({ ...empty, ...(saved.data as Partial<Post>) })
+      setEditorKey((k) => k + 1)
     }
+    setRestored(false)
   }
 
   function discardDraft() {
-    clearAutoSave(autoSaveKey)
+    autoSave.reset()
     setRestored(false)
   }
 
@@ -147,15 +158,13 @@ export default function PostForm({ initial }: { initial?: Partial<Post> }) {
     set("tags", form.tags.filter((x) => x !== t))
   }
 
-  // Auto-calculate reading time from content word count
-  useEffect(() => {
-    if (form.content) {
-      const text      = form.content.replace(/<[^>]*>/g, " ")
-      const wordCount = text.trim().split(/\s+/).filter(Boolean).length
-      const mins      = Math.max(1, Math.ceil(wordCount / 200))
-      set("reading_time", mins.toString())
-    }
-  }, [form.content])
+  // Update content and auto-calculate reading time from its word count
+  function handleContentChange(html: string) {
+    const text      = html.replace(/<[^>]*>/g, " ")
+    const wordCount = text.trim().split(/\s+/).filter(Boolean).length
+    const mins      = Math.max(1, Math.ceil(wordCount / 200))
+    setForm((prev) => ({ ...prev, content: html, reading_time: mins.toString() }))
+  }
 
   async function handleSubmit(e: React.FormEvent, asDraft = false) {
     e.preventDefault()
@@ -168,7 +177,7 @@ export default function PostForm({ initial }: { initial?: Partial<Post> }) {
     setSaving(true)
 
     const supabase = createClient()
-    const payload = {
+    const payload: Record<string, unknown> = {
       title:                  form.title.trim(),
       slug:                   form.slug.trim(),
       excerpt:                form.excerpt.trim() || null,
@@ -185,7 +194,15 @@ export default function PostForm({ initial }: { initial?: Partial<Post> }) {
       layout_style:           form.layout_style,
       reading_time:           form.reading_time ? parseInt(form.reading_time) : null,
       pinned_order:           form.pinned_order ? parseInt(form.pinned_order) : null,
-      published_at:           finalStatus === "published" ? new Date().toISOString() : null,
+      // Keep the original publish date when editing an already-published post
+      published_at:           finalStatus === "published"
+        ? (initial?.status === "published" && initial?.published_at) || new Date().toISOString()
+        : null,
+    }
+
+    // Only send gallery once the column exists (loaded from DB) or images were added
+    if (initial?.gallery !== undefined || form.gallery.length > 0) {
+      payload.gallery = form.gallery
     }
 
     let dbError
@@ -204,7 +221,7 @@ export default function PostForm({ initial }: { initial?: Partial<Post> }) {
       return
     }
 
-    clearAutoSave(autoSaveKey)
+    autoSave.stop()
     router.refresh()
     router.push("/admin/posts")
   }
@@ -290,7 +307,7 @@ export default function PostForm({ initial }: { initial?: Partial<Post> }) {
         style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
       >
         {/* Title and Slug */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1rem" }}>
           <div>
             <label style={labelStyle}>
               Title <span style={{ color: "#ef4444" }}>*</span>
@@ -337,8 +354,9 @@ export default function PostForm({ initial }: { initial?: Partial<Post> }) {
         <div>
           <label style={labelStyle}>Content</label>
           <RichTextEditor
+            key={editorKey}
             content={form.content}
-            onChange={(html) => set("content", html)}
+            onChange={handleContentChange}
             placeholder="Start writing your post..."
           />
           <p style={hintStyle}>
@@ -369,6 +387,17 @@ export default function PostForm({ initial }: { initial?: Partial<Post> }) {
             Hide cover image
           </label>
         </div>
+
+        {/* Gallery */}
+        <GalleryUpload
+          label="Post Gallery"
+          value={form.gallery}
+          onChange={(urls) => set("gallery", urls)}
+          folder="posts"
+        />
+        <p style={{ ...hintStyle, marginTop: "-1rem" }}>
+          Tip: to place images inside the article, use the image button in the editor toolbar.
+        </p>
 
         {/* Tags */}
         <div>
@@ -407,7 +436,7 @@ export default function PostForm({ initial }: { initial?: Partial<Post> }) {
         </div>
 
         {/* Status, Layout, Pinned Order */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "1rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: "1rem" }}>
           <div>
             <label style={labelStyle}>Status</label>
             <select

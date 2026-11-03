@@ -30,20 +30,27 @@ export default async function AdminLayout({
     >
       <AdminSidebar userEmail={user.email ?? ""} />
       <main
+        className="admin-main"
         style={{
           flex: 1,
           marginLeft: "260px",
           minHeight: "100vh",
+          minWidth: 0,
           background: "var(--bg)",
-          overflow: "auto",
         }}
       >
         {children}
       </main>
 
+      {/* No overflow on main so sticky toolbars pin to the viewport */}
       <style>{`
         @media (max-width: 768px) {
-          main { margin-left: 0 !important; }
+          .admin-main {
+            margin-left: 0 !important;
+            padding-top: 3.5rem;
+            --admin-sticky-top: 3.5rem;
+          }
+          .admin-main > div { padding-left: 1rem !important; padding-right: 1rem !important; padding-top: 1.25rem !important; }
         }
       `}</style>
     </div>

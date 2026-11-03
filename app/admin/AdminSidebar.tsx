@@ -18,12 +18,14 @@ import {
   Users,
   LogOut,
   Menu,
+  PanelsTopLeft,
   Star,
   X,
 } from "lucide-react"
 
 const NAV_ITEMS = [
   { href: "/admin/dashboard",   label: "Dashboard",   icon: LayoutDashboard },
+  { href: "/admin/site",        label: "Site Content", icon: PanelsTopLeft  },
   { href: "/admin/projects",    label: "Projects",    icon: FolderOpen      },
   { href: "/admin/posts",       label: "Posts",       icon: FileText        },
   { href: "/admin/resources",   label: "Resources",   icon: BookMarked      },
@@ -225,27 +227,41 @@ export default function AdminSidebar({ userEmail }: { userEmail: string }) {
         {sidebarContent}
       </aside>
 
-      {/* Mobile toggle button */}
-      <button
-        onClick={() => setOpen(!open)}
+      {/* Mobile top bar */}
+      <div
         className="admin-mobile-toggle"
         style={{
           display: "none",
           position: "fixed",
-          top: "1rem",
-          left: "1rem",
+          top: 0, left: 0, right: 0,
+          height: "3.5rem",
           zIndex: 200,
+          alignItems: "center",
+          gap: "0.75rem",
+          padding: "0 1rem",
           background: "var(--surface)",
-          border: "1px solid var(--border)",
-          borderRadius: "0.375rem",
-          padding: "0.5rem",
-          cursor: "pointer",
-          color: "var(--text-primary)",
+          borderBottom: "1px solid var(--border)",
         }}
-        aria-label="Toggle admin menu"
       >
-        {open ? <X size={18} /> : <Menu size={18} />}
-      </button>
+        <button
+          onClick={() => setOpen(!open)}
+          style={{
+            display: "flex",
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            borderRadius: "0.375rem",
+            padding: "0.45rem",
+            cursor: "pointer",
+            color: "var(--text-primary)",
+          }}
+          aria-label="Toggle admin menu"
+        >
+          {open ? <X size={18} /> : <Menu size={18} />}
+        </button>
+        <span style={{ fontFamily: "DM Serif Display, serif", fontSize: "1rem", color: "var(--text-primary)" }}>
+          {NAV_ITEMS.find(({ href }) => pathname === href || pathname.startsWith(href + "/"))?.label ?? "Admin"}
+        </span>
+      </div>
 
       {/* Mobile sidebar overlay */}
       {open && (
@@ -253,6 +269,7 @@ export default function AdminSidebar({ userEmail }: { userEmail: string }) {
           style={{
             position: "fixed",
             inset: 0,
+            top: "3.5rem",
             zIndex: 150,
             display: "flex",
           }}
